@@ -1,4 +1,8 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native';
 import {
   Camera,
   Layer,
@@ -7,15 +11,18 @@ import {
   type LayerSpecification,
 } from '@maplibre/maplibre-react-native';
 
-import { MAP_SPOTS, UTS_MAP_CENTER } from '../data/mapSpots';
+import { UTS_MAP_CENTER } from '../data/mapSpots';
+import type { StudySpot } from '../services/studySpots';
 import { COLORS } from '../theme';
 
 type StudyMapProps = {
+  spots: StudySpot[];
   selectedId: string | null;
   onSelect: (id: string | null) => void;
 };
 
-const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+const MAP_STYLE =
+  'https://tiles.openfreemap.org/styles/liberty';
 
 const CROWD_COLORS = {
   quiet: COLORS.green,
@@ -47,6 +54,7 @@ const BUILDING_LAYER: LayerSpecification = {
 };
 
 export default function StudyMap({
+  spots,
   selectedId,
   onSelect,
 }: StudyMapProps) {
@@ -67,15 +75,19 @@ export default function StudyMap({
 
       <Layer {...BUILDING_LAYER} />
 
-      {MAP_SPOTS.map((spot) => {
+      {spots.map((spot) => {
         const isSelected = selectedId === spot.id;
-        const colour = CROWD_COLORS[spot.crowd];
+        const colour =
+          CROWD_COLORS[spot.crowd_level];
 
         return (
           <ViewAnnotation
             key={spot.id}
             id={`study-spot-${spot.id}`}
-            lngLat={spot.coordinates}
+            lngLat={[
+              spot.longitude,
+              spot.latitude,
+            ]}
             anchor="bottom"
           >
             <Pressable
@@ -87,12 +99,8 @@ export default function StudyMap({
               }}
               style={[
                 styles.markerOuter,
-                isSelected && {
-                  width: 38,
-                  height: 38,
-                  borderRadius: 19,
-                  backgroundColor: `${COLORS.purple}55`,
-                },
+                isSelected &&
+                  styles.markerOuterSelected,
               ]}
             >
               <View
@@ -102,7 +110,9 @@ export default function StudyMap({
                     backgroundColor: colour,
                     width: isSelected ? 28 : 22,
                     height: isSelected ? 28 : 22,
-                    borderRadius: isSelected ? 14 : 11,
+                    borderRadius: isSelected
+                      ? 14
+                      : 11,
                   },
                 ]}
               />
@@ -124,6 +134,12 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  markerOuterSelected: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: `${COLORS.purple}55`,
   },
   marker: {
     borderWidth: 3,

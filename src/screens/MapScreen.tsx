@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,10 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import StudyMap from '../components/StudyMap';
-import {
-  MAP_SPOTS,
-  type CrowdLevel,
-} from '../data/mapSpots';
+import { useStudySpots } from '../context/StudySpotsContext';
+import type { CrowdLevel } from '../services/studySpots';
 import { COLORS } from '../theme';
 
 const CROWD_META: Record<
@@ -34,10 +33,32 @@ const CROWD_META: Record<
 };
 
 export default function MapScreen() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<
+    string | null
+  >(null);
+
+  const {
+    filteredSpots,
+    loading,
+    error,
+    refresh,
+  } = useStudySpots();
 
   const selectedSpot =
-    MAP_SPOTS.find((spot) => spot.id === selectedId) ?? null;
+    filteredSpots.find(
+      (spot) => spot.id === selectedId
+    ) ?? null;
+
+  useEffect(() => {
+    if (
+      selectedId &&
+      !filteredSpots.some(
+        (spot) => spot.id === selectedId
+      )
+    ) {
+      setSelectedId(null);
+    }
+  }, [filteredSpots, selectedId]);
 
   const handleSelect = (id: string | null) => {
     setSelectedId((currentId) =>
@@ -45,30 +66,120 @@ export default function MapScreen() {
     );
   };
 
+  const subtitle = loading
+    ? 'Loading live study spots...'
+    : error
+      ? 'Unable to load live study spots'
+      : `${filteredSpots.length} matching spots · drag to explore`;
+
   return (
     <SafeAreaView
       style={styles.safeArea}
       edges={['top', 'left', 'right']}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Map</Text>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>Map</Text>
 
-        <Text style={styles.subtitle}>
-          {MAP_SPOTS.length} spots nearby · drag to explore
-        </Text>
+          <Text style={styles.subtitle}>
+            {subtitle}
+          </Text>
+        </View>
+
+        {!loading && !error && (
+          <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
+
+            <Text style={styles.liveText}>Live</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.sceneWrap}>
         <StudyMap
+          spots={filteredSpots}
           selectedId={selectedId}
           onSelect={handleSelect}
         />
+
+        {loading && (
+          <View style={styles.sceneMessage}>
+            <Ionicons
+              name="cloud-download-outline"
+              size={24}
+              color={COLORS.purple}
+            />
+
+            <Text style={styles.sceneMessageTitle}>
+              Loading locations
+            </Text>
+
+            <Text style={styles.sceneMessageText}>
+              Retrieving the latest study spots
+            </Text>
+          </View>
+        )}
+
+        {error && (
+          <View style={styles.sceneMessage}>
+            <Ionicons
+              name="alert-circle-outline"
+              size={24}
+              color={COLORS.pink}
+            />
+
+            <Text style={styles.sceneMessageTitle}>
+              Couldn’t load locations
+            </Text>
+
+            <Text style={styles.sceneMessageText}>
+              {error}
+            </Text>
+
+            <Pressable
+              onPress={() => {
+                void refresh();
+              }}
+              style={({ pressed }) => [
+                styles.retryButton,
+                pressed && styles.retryButtonPressed,
+              ]}
+            >
+              <Text style={styles.retryButtonText}>
+                Try again
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {!loading &&
+          !error &&
+          filteredSpots.length === 0 && (
+            <View style={styles.sceneMessage}>
+              <Ionicons
+                name="search-outline"
+                size={24}
+                color={COLORS.textSecondary}
+              />
+
+              <Text style={styles.sceneMessageTitle}>
+                No matching locations
+              </Text>
+
+              <Text style={styles.sceneMessageText}>
+                Change or clear your Discover filters
+              </Text>
+            </View>
+          )}
       </View>
 
       <View style={styles.legend}>
         {(Object.keys(CROWD_META) as CrowdLevel[]).map(
           (level) => (
-            <View key={level} style={styles.legendItem}>
+            <View
+              key={level}
+              style={styles.legendItem}
+            >
               <View
                 style={[
                   styles.legendDot,
@@ -94,14 +205,17 @@ export default function MapScreen() {
               styles.previewThumb,
               {
                 backgroundColor:
-                  `${CROWD_META[selectedSpot.crowd].color}26`,
+                  `${CROWD_META[selectedSpot.crowd_level].color}26`,
               },
             ]}
           >
             <Ionicons
               name="location"
               size={22}
-              color={CROWD_META[selectedSpot.crowd].color}
+              color={
+                CROWD_META[selectedSpot.crowd_level]
+                  .color
+              }
             />
           </View>
 
@@ -119,17 +233,30 @@ export default function MapScreen() {
                   styles.previewCrowdDot,
                   {
                     backgroundColor:
-                      CROWD_META[selectedSpot.crowd].color,
+                      CROWD_META[
+                        selectedSpot.crowd_level
+                      ].color,
                   },
                 ]}
               />
 
               <Text style={styles.previewMeta}>
-                {CROWD_META[selectedSpot.crowd].label}
+                {
+                  CROWD_META[
+                    selectedSpot.crowd_level
+                  ].label
+                }
                 {' · '}
-                {selectedSpot.distance}
+                {selectedSpot.walk_minutes} min walk
               </Text>
             </View>
+
+            <Text style={styles.previewAvailability}>
+              {selectedSpot.available_seats} of{' '}
+              {selectedSpot.total_seats} seats available
+              {' · '}
+              {selectedSpot.is_open ? 'Open' : 'Closed'}
+            </Text>
           </View>
 
           <TouchableOpacity
@@ -155,9 +282,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 16,
+    gap: 12,
+  },
+  headerText: {
+    flex: 1,
   },
   title: {
     color: COLORS.textPrimary,
@@ -170,6 +304,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Poppins_400Regular',
   },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: `${COLORS.green}18`,
+    borderWidth: 1,
+    borderColor: `${COLORS.green}55`,
+  },
+  liveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: COLORS.green,
+  },
+  liveText: {
+    color: COLORS.green,
+    fontSize: 11,
+    fontFamily: 'Poppins_600SemiBold',
+  },
   sceneWrap: {
     flex: 1,
     minHeight: 360,
@@ -179,6 +335,53 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
+  },
+  sceneMessage: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 260,
+    padding: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    transform: [
+      { translateX: -130 },
+      { translateY: -70 },
+    ],
+  },
+  sceneMessageTitle: {
+    color: COLORS.textPrimary,
+    fontSize: 14,
+    fontFamily: 'Poppins_600SemiBold',
+    marginTop: 8,
+  },
+  sceneMessageText: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    lineHeight: 17,
+    textAlign: 'center',
+    fontFamily: 'Poppins_400Regular',
+    marginTop: 2,
+  },
+  retryButton: {
+    minHeight: 34,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    backgroundColor: COLORS.purple,
+    marginTop: 12,
+  },
+  retryButtonPressed: {
+    opacity: 0.75,
+  },
+  retryButtonText: {
+    color: COLORS.textPrimary,
+    fontSize: 12,
+    fontFamily: 'Poppins_600SemiBold',
   },
   legend: {
     flexDirection: 'row',
@@ -243,6 +446,13 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 12,
     fontFamily: 'Poppins_400Regular',
+  },
+  previewAvailability: {
+    color: COLORS.textSecondary,
+    fontSize: 10,
+    lineHeight: 16,
+    fontFamily: 'Poppins_400Regular',
+    marginTop: 3,
   },
   previewClose: {
     width: 28,
