@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import StudyMap from '../components/StudyMap';
 import { useStudySpots } from '../context/StudySpotsContext';
+import { useAuth } from '../hooks/useAuth';
+import { useFavourites } from '../hooks/useFavourites';
 import type { CrowdLevel } from '../services/studySpots';
 import { COLORS } from '../theme';
 
@@ -43,6 +45,9 @@ export default function MapScreen() {
     error,
     refresh,
   } = useStudySpots();
+
+  const { user } = useAuth();
+  const { favouriteIds, toggle: toggleFavourite } = useFavourites();
 
   const selectedSpot =
     filteredSpots.find(
@@ -259,6 +264,20 @@ export default function MapScreen() {
             </Text>
           </View>
 
+          {user && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.previewHeart}
+              onPress={() => toggleFavourite(selectedSpot.id)}
+            >
+              <Ionicons
+                name={favouriteIds.has(selectedSpot.id) ? 'heart' : 'heart-outline'}
+                size={18}
+                color={COLORS.pink}
+              />
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             activeOpacity={0.7}
             style={styles.previewClose}
@@ -461,5 +480,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.background,
+  },
+  previewHeart: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: `${COLORS.pink}18`,
   },
 });

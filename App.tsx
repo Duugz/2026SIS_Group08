@@ -22,10 +22,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
-const TAB_ICONS: Record<
-  string,
-  keyof typeof Ionicons.glyphMap
-> = {
+const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Home: 'home',
   Map: 'map-outline',
   Discover: 'compass-outline',
@@ -59,38 +56,15 @@ export default function App() {
               tabBarStyle: styles.tabBar,
               tabBarLabelStyle: styles.tabLabel,
               tabBarIcon: ({ color, size }) => (
-                <Ionicons
-                  name={TAB_ICONS[route.name]}
-                  size={size}
-                  color={color}
-                />
+                <Ionicons name={TAB_ICONS[route.name]} size={size} color={color} />
               ),
             })}
           >
-            <Tab.Screen
-              name="Home"
-              component={HomeScreen}
-            />
-
-            <Tab.Screen
-              name="Map"
-              component={MapScreen}
-            />
-
-            <Tab.Screen
-              name="Discover"
-              component={DiscoverScreen}
-            />
-
-            <Tab.Screen
-              name="Favourites"
-              component={FavouritesScreen}
-            />
-
-            <Tab.Screen
-              name="Profile"
-              component={ProfileScreen}
-            />
+            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Map" component={MapScreen} />
+            <Tab.Screen name="Discover" component={DiscoverScreen} />
+            <Tab.Screen name="Favourites" component={FavouritesScreen} />
+            <Tab.Screen name="Profile" component={ProfileScreen} />
           </Tab.Navigator>
         </NavigationContainer>
       </StudySpotsProvider>
