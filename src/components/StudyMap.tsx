@@ -21,8 +21,17 @@ type StudyMapProps = {
   onSelect: (id: string | null) => void;
 };
 
+const MAPTILER_KEY =
+  process.env.EXPO_PUBLIC_MAPTILER_KEY;
+
+if (!MAPTILER_KEY) {
+  throw new Error(
+    'Missing EXPO_PUBLIC_MAPTILER_KEY'
+  );
+}
+
 const MAP_STYLE =
-  'https://tiles.openfreemap.org/styles/liberty';
+  `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`;
 
 const CROWD_COLORS = {
   quiet: COLORS.green,
@@ -37,7 +46,27 @@ const BUILDING_LAYER: LayerSpecification = {
   'source-layer': 'building',
   minzoom: 14,
   paint: {
-    'fill-extrusion-color': '#252938',
+    'fill-extrusion-color': [
+  'interpolate',
+  ['linear'],
+  [
+    'to-number',
+    [
+      'coalesce',
+      ['get', 'render_height'],
+      ['get', 'height'],
+      8,
+    ],
+  ],
+  0,
+  '#E1DED8',
+  25,
+  '#D4D0C8',
+  60,
+  '#C2BEB6',
+  120,
+  '#AAA69F',
+],
     'fill-extrusion-height': [
       'coalesce',
       ['get', 'render_height'],
@@ -49,7 +78,8 @@ const BUILDING_LAYER: LayerSpecification = {
       ['get', 'render_min_height'],
       0,
     ],
-    'fill-extrusion-opacity': 0.88,
+    'fill-extrusion-opacity': 0.82,
+    'fill-extrusion-vertical-gradient': true,
   },
 };
 

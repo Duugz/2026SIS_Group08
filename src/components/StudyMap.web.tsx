@@ -16,8 +16,17 @@ type StudyMapProps = {
   onSelect: (id: string | null) => void;
 };
 
+const MAPTILER_KEY =
+  process.env.EXPO_PUBLIC_MAPTILER_KEY;
+
+if (!MAPTILER_KEY) {
+  throw new Error(
+    'Missing EXPO_PUBLIC_MAPTILER_KEY'
+  );
+}
+
 const MAP_STYLE =
-  'https://tiles.openfreemap.org/styles/liberty';
+  `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`;
 
 const CROWD_COLORS = {
   quiet: COLORS.green,
@@ -70,19 +79,45 @@ export default function StudyMap({
             layer.type === 'symbol'
         )?.id;
 
-      if (
-        map.getSource('openmaptiles') &&
-        !map.getLayer('studyspot-3d-buildings')
-      ) {
+      const vectorSourceId = Object.entries(
+  map.getStyle().sources
+).find(
+  ([, source]) => source.type === 'vector'
+)?.[0];
+
+if (
+  vectorSourceId &&
+  !map.getLayer('studyspot-3d-buildings')
+) {
         const buildingLayer: FillExtrusionLayerSpecification =
           {
             id: 'studyspot-3d-buildings',
             type: 'fill-extrusion',
-            source: 'openmaptiles',
+            source: vectorSourceId,
             'source-layer': 'building',
             minzoom: 14,
             paint: {
-              'fill-extrusion-color': '#252938',
+              'fill-extrusion-color': [
+  'interpolate',
+  ['linear'],
+  [
+    'to-number',
+    [
+      'coalesce',
+      ['get', 'render_height'],
+      ['get', 'height'],
+      8,
+    ],
+  ],
+  0,
+  '#E1DED8',
+  25,
+  '#D4D0C8',
+  60,
+  '#C2BEB6',
+  120,
+  '#AAA69F',
+],
               'fill-extrusion-height': [
                 'coalesce',
                 ['get', 'render_height'],
@@ -94,11 +129,18 @@ export default function StudyMap({
                 ['get', 'render_min_height'],
                 0,
               ],
-              'fill-extrusion-opacity': 0.88,
+              'fill-extrusion-opacity': 1,
+              'fill-extrusion-vertical-gradient': true,
             },
           };
 
         map.addLayer(buildingLayer, firstLabelLayer);
+        map.setLight({
+          anchor: 'map',
+          color: '#FFFFFF',
+          intensity: 0.7,
+          position: [1.2, 210, 30],
+        });
       }
 
       setMapReady(true);
