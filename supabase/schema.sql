@@ -112,10 +112,13 @@ create table if not exists profiles (
 
 alter table profiles enable row level security;
 
+-- Public read so other users can see display names on things like
+-- check-ins; only the owner can write their own row (see update policy).
 drop policy if exists "Users can read their own profile" on profiles;
-create policy "Users can read their own profile"
+drop policy if exists "Profiles are publicly readable" on profiles;
+create policy "Profiles are publicly readable"
   on profiles for select
-  using (auth.uid() = id);
+  using (true);
 
 drop policy if exists "Users can update their own profile" on profiles;
 create policy "Users can update their own profile"
@@ -162,4 +165,45 @@ create policy "Users can add their own favourites"
 drop policy if exists "Users can remove their own favourites" on favourites;
 create policy "Users can remove their own favourites"
   on favourites for delete
+  using (auth.uid() = user_id);
+
+-- ============================================================
+-- check_ins - one active row per user; who's currently studying where.
+-- References profiles (not auth.users directly) so the app can embed
+-- display_name in a single query via PostgREST's FK-based joins.
+-- ============================================================
+
+create table if not exists check_ins (
+  user_id uuid primary key references profiles (id) on delete cascade,
+  spot_id uuid not null references study_spots (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '2 hours'
+);
+
+alter table check_ins enable row level security;
+
+-- A check-in is only useful if other people can see it, and only while
+-- it's still active - expired rows are invisible to everyone, including
+-- the user who made them.
+drop policy if exists "Active check-ins are publicly readable" on check_ins;
+create policy "Active check-ins are publicly readable"
+  on check_ins for select
+  using (expires_at > now());
+
+drop policy if exists "Users can check themselves in" on check_ins;
+create policy "Users can check themselves in"
+  on check_ins for insert
+  with check (auth.uid() = user_id);
+
+-- Needed for "checking in elsewhere moves you" - the app upserts on the
+-- user_id primary key, which requires update as well as insert rights.
+drop policy if exists "Users can update their own check-in" on check_ins;
+create policy "Users can update their own check-in"
+  on check_ins for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can check themselves out" on check_ins;
+create policy "Users can check themselves out"
+  on check_ins for delete
   using (auth.uid() = user_id);

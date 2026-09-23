@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import StudyMap from '../components/StudyMap';
 import { useStudySpots } from '../context/StudySpotsContext';
 import { useAuth } from '../hooks/useAuth';
+import { useCheckIns } from '../hooks/useCheckIns';
 import { useFavourites } from '../hooks/useFavourites';
 import type { CrowdLevel } from '../services/studySpots';
 import { COLORS } from '../theme';
@@ -48,11 +49,18 @@ export default function MapScreen() {
 
   const { user } = useAuth();
   const { favouriteIds, toggle: toggleFavourite } = useFavourites();
+  const { myCheckIn, checkIn, checkOut, checkInsForSpot } = useCheckIns();
 
   const selectedSpot =
     filteredSpots.find(
       (spot) => spot.id === selectedId
     ) ?? null;
+
+  const selectedSpotCheckIns = selectedSpot
+    ? checkInsForSpot(selectedSpot.id)
+    : [];
+  const isCheckedInHere =
+    selectedSpot !== null && myCheckIn?.spotId === selectedSpot.id;
 
   useEffect(() => {
     if (
@@ -262,6 +270,19 @@ export default function MapScreen() {
               {' · '}
               {selectedSpot.is_open ? 'Open' : 'Closed'}
             </Text>
+
+            {selectedSpotCheckIns.length > 0 && (
+              <Text
+                style={styles.previewCheckIns}
+                numberOfLines={1}
+              >
+                {selectedSpotCheckIns.length} checked in
+                {' · '}
+                {selectedSpotCheckIns
+                  .map((checkIn) => checkIn.displayName ?? 'Someone')
+                  .join(', ')}
+              </Text>
+            )}
           </View>
 
           {user && (
@@ -274,6 +295,32 @@ export default function MapScreen() {
                 name={favouriteIds.has(selectedSpot.id) ? 'heart' : 'heart-outline'}
                 size={18}
                 color={COLORS.pink}
+              />
+            </TouchableOpacity>
+          )}
+
+          {user && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.previewCheckInButton}
+              onPress={() =>
+                isCheckedInHere
+                  ? checkOut()
+                  : checkIn(selectedSpot.id)
+              }
+            >
+              <Ionicons
+                name={
+                  isCheckedInHere
+                    ? 'checkmark-circle'
+                    : 'checkmark-circle-outline'
+                }
+                size={18}
+                color={
+                  isCheckedInHere
+                    ? COLORS.green
+                    : COLORS.textSecondary
+                }
               />
             </TouchableOpacity>
           )}
@@ -473,6 +520,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
     marginTop: 3,
   },
+  previewCheckIns: {
+    color: COLORS.green,
+    fontSize: 10,
+    lineHeight: 16,
+    fontFamily: 'Poppins_400Regular',
+    marginTop: 2,
+  },
   previewClose: {
     width: 28,
     height: 28,
@@ -488,5 +542,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: `${COLORS.pink}18`,
+  },
+  previewCheckInButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: `${COLORS.green}18`,
   },
 });
