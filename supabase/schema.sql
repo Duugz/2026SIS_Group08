@@ -110,6 +110,43 @@ values
   ('martin-place-study-pods', 'Martin Place Study Pods', 'Co-working style seating in the heart of the financial district', -33.8675, 151.2086, 25, 'moderate', 'busy', '{solo}', '{power,wifi,food}', true, 8, 20)
 on conflict (slug) do nothing;
 
+-- Third wave of seed data - filling out the CBD further so there's
+-- enough coverage for real check-in data to be meaningful once it's
+-- collected. walk_minutes is still approximate distance from UTS.
+insert into study_spots (
+  slug, name, description, latitude, longitude, walk_minutes,
+  noise_level, crowd_level, study_types, facilities, is_open,
+  available_seats, total_seats
+)
+values
+  ('uts-tower-study-lounge', 'UTS Tower Study Lounge', 'Quiet corners tucked into the UTS Tower building foyer', -33.8833, 151.2005, 2, 'quiet', 'quiet', '{solo}', '{power,wifi}', true, 14, 30),
+  ('chau-chak-wing-reading-room', 'Dr Chau Chak Wing Building Reading Room', 'Reading room inside the Frank Gehry-designed UTS Business School', -33.8823, 151.1989, 5, 'quiet', 'quiet', '{solo}', '{power,wifi,toilets}', true, 20, 45),
+  ('carriageworks-foyer', 'Carriageworks Foyer', 'High-ceilinged foyer of the old rail workshops, now an arts venue', -33.8936, 151.1945, 15, 'moderate', 'moderate', '{solo,group}', '{wifi,food,toilets}', true, 18, 40),
+  ('ultimo-community-centre', 'Ultimo Community Centre', 'Local council meeting rooms available for quiet study', -33.8798, 151.1958, 10, 'quiet', 'quiet', '{solo,group}', '{power,wifi,toilets}', true, 12, 25),
+  ('wentworth-park-edge', 'Wentworth Park Edge', 'Grassy edge of Wentworth Park, popular for outdoor reading', -33.8776, 151.1912, 14, 'quiet', 'quiet', '{solo,group}', '{}', true, 30, 50),
+  ('chippendale-green', 'Chippendale Green', 'Small urban park surrounded by cafes and galleries', -33.8870, 151.1978, 9, 'moderate', 'moderate', '{solo,group}', '{wifi}', true, 20, 35),
+  ('spice-alley-courtyard', 'Spice Alley Courtyard', 'Hawker-style laneway courtyard, casual and lively', -33.8869, 151.1988, 8, 'busy', 'busy', '{solo,group}', '{wifi,food,toilets}', true, 15, 40),
+  ('broadway-food-court-nook', 'Broadway Shopping Centre Food Court Nook', 'Tables tucked away from the main food court crowd', -33.8838, 151.1976, 4, 'busy', 'busy', '{solo,group}', '{wifi,food,toilets}', true, 10, 30),
+  ('world-square-plaza', 'World Square Plaza', 'Open plaza seating between shops and cafes', -33.8770, 151.2062, 18, 'busy', 'busy', '{solo,group}', '{wifi,food,toilets}', true, 20, 50),
+  ('dixon-house-food-court', 'Dixon House Food Court', 'Chinatown food court with cheap eats and free Wi-Fi', -33.8797, 151.2055, 12, 'busy', 'busy', '{solo,group}', '{wifi,food,toilets}', true, 15, 45),
+  ('belmore-park', 'Belmore Park', 'Green space next to Central Station, handy between classes', -33.8822, 151.2062, 10, 'moderate', 'moderate', '{solo,group}', '{}', true, 25, 40),
+  ('railway-square-steps', 'Railway Square Steps', 'Sunny steps near Central, popular for a quick laptop session', -33.8818, 151.1994, 6, 'moderate', 'moderate', '{solo}', '{wifi}', true, 12, 25),
+  ('thomas-street-study-corner', 'Thomas Street Study Corner', 'Compact study room above a Haymarket cafe', -33.8807, 151.2020, 7, 'quiet', 'moderate', '{solo}', '{power,wifi,food}', true, 8, 18),
+  ('town-hall-forecourt', 'Sydney Town Hall Forecourt', 'Open forecourt outside Town Hall station, good for a change of scenery', -33.8732, 151.2057, 20, 'moderate', 'moderate', '{solo,group}', '{wifi}', true, 20, 40),
+  ('qvb-atrium', 'Queen Victoria Building Atrium', 'Heritage shopping arcade with upper-level seating', -33.8721, 151.2067, 21, 'moderate', 'busy', '{solo}', '{wifi,food,toilets}', true, 10, 30),
+  ('hyde-park-north', 'Hyde Park North', 'Tree-lined lawns near the Archibald Fountain', -33.8714, 151.2113, 24, 'quiet', 'quiet', '{solo,group}', '{}', true, 40, 60),
+  ('hyde-park-south', 'Hyde Park South', 'Quieter end of the park near the Anzac Memorial', -33.8766, 151.2111, 22, 'quiet', 'quiet', '{solo,group}', '{}', true, 35, 55),
+  ('cook-phillip-park', 'Cook and Phillip Park', 'Park next to the aquatic centre, shaded seating available', -33.8744, 151.2127, 24, 'quiet', 'quiet', '{solo,group}', '{toilets}', true, 20, 35),
+  ('wynyard-park', 'Wynyard Park', 'Small city park popular with office workers on lunch breaks', -33.8655, 151.2063, 27, 'moderate', 'busy', '{solo}', '{wifi}', true, 15, 30),
+  ('barrack-street-study-nook', 'Barrack Street Study Nook', 'Co-working style seating tucked between CBD office towers', -33.8678, 151.2065, 26, 'moderate', 'busy', '{solo}', '{power,wifi,food}', true, 6, 15),
+  ('tumbalong-park', 'Tumbalong Park', 'Darling Harbour''s main lawn, lively but spacious', -33.8754, 151.2017, 16, 'busy', 'moderate', '{solo,group}', '{wifi,toilets}', true, 30, 60),
+  ('barangaroo-reserve', 'Barangaroo Reserve', 'Harbourside headland park with plenty of open space', -33.8610, 151.1988, 30, 'quiet', 'quiet', '{solo,group}', '{}', true, 40, 70),
+  ('rocks-discovery-museum-courtyard', 'The Rocks Discovery Museum Courtyard', 'Quiet sandstone courtyard in the historic Rocks precinct', -33.8597, 151.2070, 31, 'quiet', 'quiet', '{solo}', '{toilets}', true, 10, 20),
+  ('pyrmont-bay-park', 'Pyrmont Bay Park', 'Waterfront park with views of Darling Harbour', -33.8698, 151.1958, 17, 'quiet', 'moderate', '{solo,group}', '{wifi}', true, 20, 40),
+  ('crown-street-study-cafe', 'Crown Street Study Cafe', 'Laptop-friendly cafe strip through Surry Hills', -33.8853, 151.2112, 17, 'moderate', 'busy', '{solo,group}', '{wifi,food,toilets}', true, 10, 25),
+  ('taylor-square', 'Taylor Square', 'Open square at the edge of Surry Hills and Darlinghurst', -33.8807, 151.2157, 20, 'moderate', 'moderate', '{solo,group}', '{wifi}', true, 15, 30)
+on conflict (slug) do nothing;
+
 alter table study_spots enable row level security;
 
 drop policy if exists "Public read access" on study_spots;
