@@ -92,6 +92,24 @@ values
   ('alumni-green-pods', 'Alumni Green Pods', 'Fast Wi-Fi, quick sessions between classes', -33.8828, 151.2007, 3, 'moderate', 'quiet', '{solo}', '{power,wifi,toilets}', true, 6, 12)
 on conflict (slug) do nothing;
 
+-- Second wave of seed data, spreading out from campus into the wider
+-- Sydney CBD - walk_minutes is approximate, measured from UTS.
+insert into study_spots (
+  slug, name, description, latitude, longitude, walk_minutes,
+  noise_level, crowd_level, study_types, facilities, is_open,
+  available_seats, total_seats
+)
+values
+  ('the-goods-line', 'The Goods Line Study Steps', 'Outdoor amphitheatre seating and tables on the old rail corridor right by UTS', -33.8820, 151.1986, 3, 'moderate', 'moderate', '{solo,group}', '{wifi}', true, 25, 60),
+  ('haymarket-study-hub', 'Haymarket Study Hub', 'Late-opening study room near Chinatown and Paddy''s Markets', -33.8805, 151.2037, 6, 'moderate', 'moderate', '{solo,group}', '{power,wifi,food}', true, 12, 30),
+  ('prince-alfred-park-lawn', 'Prince Alfred Park Lawn', 'Open green space near Central Station, popular for outdoor group study', -33.8858, 151.1998, 8, 'quiet', 'quiet', '{solo,group}', '{}', true, 35, 40),
+  ('pyrmont-library', 'Pyrmont Library', 'Local council library with bookable group rooms', -33.8701, 151.1952, 18, 'quiet', 'quiet', '{solo,group}', '{power,wifi,toilets}', true, 10, 35),
+  ('darling-harbour-promenade', 'Darling Harbour Promenade', 'Waterside tables and cafes, good for casual laptop work', -33.8737, 151.2010, 15, 'busy', 'busy', '{solo,group}', '{wifi,food,toilets}', true, 15, 50),
+  ('state-library-nsw', 'State Library of NSW', 'Grand reading rooms plus a dedicated postgrad research room', -33.8687, 151.2109, 22, 'quiet', 'moderate', '{solo}', '{power,wifi,toilets}', true, 30, 120),
+  ('customs-house-library', 'Customs House Library', 'Council library at Circular Quay with harbour views and quiet floors', -33.8609, 151.2090, 28, 'quiet', 'quiet', '{solo,group}', '{power,wifi,toilets}', true, 20, 60),
+  ('martin-place-study-pods', 'Martin Place Study Pods', 'Co-working style seating in the heart of the financial district', -33.8675, 151.2086, 25, 'moderate', 'busy', '{solo}', '{power,wifi,food}', true, 8, 20)
+on conflict (slug) do nothing;
+
 alter table study_spots enable row level security;
 
 drop policy if exists "Public read access" on study_spots;
