@@ -45,25 +45,42 @@ const styles = StyleSheet.create({
     minHeight: 42,
     paddingHorizontal: 18,
     borderRadius: 21,
+
     borderWidth: 1,
     borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
+
+    backgroundColor: COLORS.glassStrong,
+
     alignItems: 'center',
     justifyContent: 'center',
+
+    shadowColor: COLORS.shadow,
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    elevation: 2,
   },
+
   chipSelected: {
     borderColor: COLORS.purple,
     backgroundColor: COLORS.purple,
   },
+
   chipPressed: {
-    opacity: 0.75,
+    opacity: 0.78,
+    transform: [{ scale: 0.98 }],
   },
+
   label: {
     color: COLORS.textSecondary,
     fontSize: 13,
     fontFamily: 'Poppins_500Medium',
   },
+
   labelSelected: {
-    color: COLORS.textPrimary,
+    color: COLORS.textOnAccent,
   },
 });

@@ -47,10 +47,10 @@ export default function ToggleRow({
         value={value}
         onValueChange={onValueChange}
         trackColor={{
-          false: COLORS.border,
+          false: COLORS.surfaceMuted,
           true: COLORS.purple,
         }}
-        thumbColor={COLORS.textPrimary}
+        thumbColor={COLORS.surface}
       />
     </Pressable>
   );
@@ -58,29 +58,48 @@ export default function ToggleRow({
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 70,
+    minHeight: 72,
+
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
+
+    paddingHorizontal: 18,
+    paddingVertical: 13,
+
+    borderRadius: 18,
+
     borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
+    borderColor: COLORS.glassBorder,
+
+    backgroundColor: COLORS.glassStrong,
+
     gap: 16,
+
+    shadowColor: COLORS.shadow,
+    shadowOpacity: 1,
+    shadowRadius: 14,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    elevation: 3,
   },
+
   containerPressed: {
-    opacity: 0.8,
+    opacity: 0.82,
   },
+
   textContainer: {
     flex: 1,
   },
+
   title: {
     color: COLORS.textPrimary,
     fontSize: 14,
     fontFamily: 'Poppins_600SemiBold',
   },
+
   subtitle: {
     color: COLORS.textSecondary,
     fontSize: 12,

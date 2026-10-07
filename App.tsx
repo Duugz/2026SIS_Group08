@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -22,12 +22,33 @@ import ProfileScreen from './src/screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
-const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  Home: 'home',
-  Map: 'map-outline',
-  Discover: 'compass-outline',
-  Favourites: 'heart-outline',
-  Profile: 'person-outline',
+const TAB_ICONS: Record<
+  string,
+  {
+    active: keyof typeof Ionicons.glyphMap;
+    inactive: keyof typeof Ionicons.glyphMap;
+  }
+> = {
+  Home: {
+    active: 'home',
+    inactive: 'home-outline',
+  },
+  Map: {
+    active: 'map',
+    inactive: 'map-outline',
+  },
+  Discover: {
+    active: 'compass',
+    inactive: 'compass-outline',
+  },
+  Favourites: {
+    active: 'heart',
+    inactive: 'heart-outline',
+  },
+  Profile: {
+    active: 'person',
+    inactive: 'person-outline',
+  },
 };
 
 export default function App() {
@@ -45,19 +66,38 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StudySpotsProvider>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
 
         <NavigationContainer>
           <Tab.Navigator
             screenOptions={({ route }) => ({
               headerShown: false,
+
               tabBarActiveTintColor: COLORS.purple,
               tabBarInactiveTintColor: COLORS.textSecondary,
+
               tabBarStyle: styles.tabBar,
+              tabBarItemStyle: styles.tabItem,
               tabBarLabelStyle: styles.tabLabel,
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name={TAB_ICONS[route.name]} size={size} color={color} />
-              ),
+
+              tabBarIcon: ({ color, size, focused }) => {
+                const icons = TAB_ICONS[route.name];
+
+                return (
+                  <View
+                    style={[
+                      styles.iconWrap,
+                      focused && styles.iconWrapActive,
+                    ]}
+                  >
+                    <Ionicons
+                      name={focused ? icons.active : icons.inactive}
+                      size={focused ? size + 1 : size}
+                      color={color}
+                    />
+                  </View>
+                );
+              },
             })}
           >
             <Tab.Screen name="Home" component={HomeScreen} />
@@ -77,16 +117,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   tabBar: {
-    backgroundColor: COLORS.background,
-    borderTopColor: COLORS.border,
+    backgroundColor: COLORS.glassStrong,
+
     borderTopWidth: 1,
-    height: 64,
-    paddingTop: 8,
-    paddingBottom: 10,
+    borderTopColor: COLORS.glassBorder,
+
+    height: 72,
+
+    paddingTop: 7,
+    paddingBottom: 9,
+
+    shadowColor: COLORS.shadowStrong,
+    shadowOpacity: 1,
+    shadowRadius: 18,
+    shadowOffset: {
+      width: 0,
+      height: -6,
+    },
+
+    elevation: 12,
+
+    ...(Platform.OS === 'web'
+      ? {
+          backdropFilter: 'blur(18px)',
+        }
+      : {}),
   },
+
+  tabItem: {
+    paddingTop: 1,
+  },
+
   tabLabel: {
     fontSize: 10,
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Poppins_500Medium',
+    marginTop: 2,
+  },
+
+  iconWrap: {
+    width: 38,
+    height: 30,
+
+    borderRadius: 12,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  iconWrapActive: {
+    backgroundColor: COLORS.purpleVerySoft,
   },
 });
