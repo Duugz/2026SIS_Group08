@@ -14,6 +14,7 @@ import type {
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { UTS_MAP_CENTER } from '../data/mapSpots';
+import { MAP_STYLE } from '../lib/mapStyle';
 import type { StudySpot } from '../services/studySpots';
 import { COLORS } from '../theme';
 
@@ -22,18 +23,6 @@ type StudyMapProps = {
   selectedId: string | null;
   onSelect: (id: string | null) => void;
 };
-
-const MAPTILER_KEY =
-  process.env.EXPO_PUBLIC_MAPTILER_KEY;
-
-if (!MAPTILER_KEY) {
-  throw new Error(
-    'Missing EXPO_PUBLIC_MAPTILER_KEY'
-  );
-}
-
-const MAP_STYLE =
-  `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`;
 
 const CROWD_COLORS = {
   quiet: COLORS.green,
