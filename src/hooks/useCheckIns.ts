@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+  createContext,
+  createElement,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 
@@ -18,20 +27,35 @@ type CheckInRow = {
   profiles: { display_name: string | null } | null;
 };
 
+type CheckInsContextValue = {
+  checkIns: CheckIn[];
+  myCheckIn: CheckIn | null;
+  loading: boolean;
+  checkIn: (spotId: string) => Promise<void>;
+  checkOut: () => Promise<void>;
+  checkInsForSpot: (spotId: string) => CheckIn[];
+  refresh: () => Promise<void>;
+};
+
+const CheckInsContext = createContext<CheckInsContextValue | undefined>(undefined);
+
 /**
  * Tracks who is currently checked in at each study spot. The list is
  * public (anyone can see who's checked in where); only the signed-in
  * user can check themself in/out. Check-ins expire after 2 hours via the
  * "Active check-ins are publicly readable" RLS policy, so expired rows
  * simply stop showing up here rather than needing client-side filtering.
+ *
+ * This is a single shared provider: Supabase hands back the same realtime
+ * channel for a given name, so each screen opening its own subscription
+ * would fail on the second subscribe.
  */
-export function useCheckIns() {
+export function CheckInsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    setLoading(true);
     const { data, error } = await supabase
       .from('check_ins')
       .select('user_id, spot_id, created_at, profiles(display_name)')
@@ -69,7 +93,7 @@ export function useCheckIns() {
     };
   }, [load]);
 
-  const myCheckIn = checkIns.find((checkIn) => checkIn.userId === user?.id) ?? null;
+  const myCheckIn = checkIns.find((entry) => entry.userId === user?.id) ?? null;
 
   const checkIn = useCallback(
     async (spotId: string) => {
@@ -95,9 +119,24 @@ export function useCheckIns() {
   }, [user, load]);
 
   const checkInsForSpot = useCallback(
-    (spotId: string) => checkIns.filter((checkIn) => checkIn.spotId === spotId),
+    (spotId: string) => checkIns.filter((entry) => entry.spotId === spotId),
     [checkIns]
   );
 
-  return { checkIns, myCheckIn, loading, checkIn, checkOut, checkInsForSpot, refresh: load };
+  const value = useMemo(
+    () => ({ checkIns, myCheckIn, loading, checkIn, checkOut, checkInsForSpot, refresh: load }),
+    [checkIns, myCheckIn, loading, checkIn, checkOut, checkInsForSpot, load]
+  );
+
+  return createElement(CheckInsContext.Provider, { value }, children);
+}
+
+export function useCheckIns() {
+  const context = useContext(CheckInsContext);
+
+  if (!context) {
+    throw new Error('useCheckIns must be used inside CheckInsProvider');
+  }
+
+  return context;
 }

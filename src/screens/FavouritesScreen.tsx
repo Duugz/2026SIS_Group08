@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useStudySpots } from '../context/StudySpotsContext';
 import { useAuth } from '../hooks/useAuth';
+import { useCheckIns } from '../hooks/useCheckIns';
 import { useFavourites } from '../hooks/useFavourites';
 import { COLORS } from '../theme';
 
@@ -35,6 +36,8 @@ export default function FavouritesScreen() {
   } = useAuth();
 
   const { spots } = useStudySpots();
+
+  const { checkInsForSpot } = useCheckIns();
 
   const {
     favouriteIds,
@@ -193,6 +196,9 @@ export default function FavouritesScreen() {
                 spot.crowd_level
               ];
 
+            const studyingHere =
+              checkInsForSpot(spot.id);
+
             return (
               <View
                 key={spot.id}
@@ -249,6 +255,26 @@ export default function FavouritesScreen() {
                     {spot.total_seats} seats
                     available
                   </Text>
+
+                  {studyingHere.length > 0 && (
+                    <Text
+                      style={
+                        styles.cardCheckIns
+                      }
+                      numberOfLines={1}
+                    >
+                      {studyingHere.length}{' '}
+                      studying here
+                      {' · '}
+                      {studyingHere
+                        .map(
+                          (entry) =>
+                            entry.displayName ??
+                            'Someone'
+                        )
+                        .join(', ')}
+                    </Text>
+                  )}
                 </View>
 
                 <TouchableOpacity
@@ -571,6 +597,17 @@ const styles = StyleSheet.create({
 
     fontSize: 12,
     fontFamily: 'Poppins_400Regular',
+  },
+
+  cardCheckIns: {
+    color: COLORS.green,
+
+    fontSize: 10,
+    lineHeight: 16,
+
+    fontFamily: 'Poppins_400Regular',
+
+    marginTop: 2,
   },
 
   cardAvailability: {

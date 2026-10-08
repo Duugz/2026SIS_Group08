@@ -14,6 +14,7 @@ import {
 
 import { ProfileProvider } from './src/context/ProfileContext';
 import { StudySpotsProvider } from './src/context/StudySpotsContext';
+import { CheckInsProvider } from './src/hooks/useCheckIns';
 import { COLORS } from './src/theme';
 import HomeScreen from './src/screens/HomeScreen';
 import MapScreen from './src/screens/MapScreen';
@@ -68,47 +69,49 @@ export default function App() {
     <SafeAreaProvider>
       <StudySpotsProvider>
         <ProfileProvider>
-        <StatusBar style="dark" />
+          <CheckInsProvider>
+            <StatusBar style="dark" />
 
-        <NavigationContainer>
-          <Tab.Navigator
-            screenOptions={({ route }) => ({
-              headerShown: false,
+            <NavigationContainer>
+              <Tab.Navigator
+                screenOptions={({ route }) => ({
+                  headerShown: false,
 
-              tabBarActiveTintColor: COLORS.purple,
-              tabBarInactiveTintColor: COLORS.textSecondary,
+                  tabBarActiveTintColor: COLORS.purple,
+                  tabBarInactiveTintColor: COLORS.textSecondary,
 
-              tabBarStyle: styles.tabBar,
-              tabBarItemStyle: styles.tabItem,
-              tabBarLabelStyle: styles.tabLabel,
+                  tabBarStyle: styles.tabBar,
+                  tabBarItemStyle: styles.tabItem,
+                  tabBarLabelStyle: styles.tabLabel,
 
-              tabBarIcon: ({ color, size, focused }) => {
-                const icons = TAB_ICONS[route.name];
+                  tabBarIcon: ({ color, size, focused }) => {
+                    const icons = TAB_ICONS[route.name];
 
-                return (
-                  <View
-                    style={[
-                      styles.iconWrap,
-                      focused && styles.iconWrapActive,
-                    ]}
-                  >
-                    <Ionicons
-                      name={focused ? icons.active : icons.inactive}
-                      size={focused ? size + 1 : size}
-                      color={color}
-                    />
-                  </View>
-                );
-              },
-            })}
-          >
-            <Tab.Screen name="Home" component={HomeScreen} />
-            <Tab.Screen name="Map" component={MapScreen} />
-            <Tab.Screen name="Discover" component={DiscoverScreen} />
-            <Tab.Screen name="Favourites" component={FavouritesScreen} />
-            <Tab.Screen name="Profile" component={ProfileScreen} />
-          </Tab.Navigator>
-        </NavigationContainer>
+                    return (
+                      <View
+                        style={[
+                          styles.iconWrap,
+                          focused && styles.iconWrapActive,
+                        ]}
+                      >
+                        <Ionicons
+                          name={focused ? icons.active : icons.inactive}
+                          size={focused ? size + 1 : size}
+                          color={color}
+                        />
+                      </View>
+                    );
+                  },
+                })}
+              >
+                <Tab.Screen name="Home" component={HomeScreen} />
+                <Tab.Screen name="Map" component={MapScreen} />
+                <Tab.Screen name="Discover" component={DiscoverScreen} />
+                <Tab.Screen name="Favourites" component={FavouritesScreen} />
+                <Tab.Screen name="Profile" component={ProfileScreen} />
+              </Tab.Navigator>
+            </NavigationContainer>
+          </CheckInsProvider>
         </ProfileProvider>
       </StudySpotsProvider>
     </SafeAreaProvider>
