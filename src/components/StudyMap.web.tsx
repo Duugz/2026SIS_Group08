@@ -1,9 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
 import * as maplibregl from 'maplibre-gl';
+
 import type {
   FillExtrusionLayerSpecification,
   LayerSpecification,
 } from 'maplibre-gl';
+
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { UTS_MAP_CENTER } from '../data/mapSpots';
@@ -39,85 +46,96 @@ export default function StudyMap({
   selectedId,
   onSelect,
 }: StudyMapProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+  const containerRef =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
+  const mapRef =
+    useRef<maplibregl.Map | null>(
+      null
+    );
+
   const markersRef = useRef<
     Map<string, maplibregl.Marker>
   >(new Map());
-  const onSelectRef = useRef(onSelect);
-  const [mapReady, setMapReady] = useState(false);
+
+  const onSelectRef =
+    useRef(onSelect);
+
+  const [mapReady, setMapReady] =
+    useState(false);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) {
+    if (
+      !containerRef.current ||
+      mapRef.current
+    ) {
       return;
     }
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: MAP_STYLE,
-      center: UTS_MAP_CENTER,
-      zoom: 15.5,
-      pitch: 60,
-      bearing: -20,
-      canvasContextAttributes: {
-        antialias: true,
-      },
-      attributionControl: false,
-    });
+    const map =
+      new maplibregl.Map({
+        container:
+          containerRef.current,
+
+        style: MAP_STYLE,
+
+        center: UTS_MAP_CENTER,
+
+        zoom: 15.5,
+
+        pitch: 60,
+
+        bearing: -20,
+
+        canvasContextAttributes: {
+          antialias: true,
+        },
+
+        attributionControl: false,
+      });
 
     mapRef.current = map;
 
     map.on('load', () => {
-      const firstLabelLayer = map
-        .getStyle()
-        .layers?.find(
-          (layer: LayerSpecification) =>
-            layer.type === 'symbol'
-        )?.id;
+      const firstLabelLayer =
+        map
+          .getStyle()
+          .layers?.find(
+            (
+              layer: LayerSpecification
+            ) =>
+              layer.type ===
+              'symbol'
+          )?.id;
 
       const vectorSourceId = Object.entries(
-  map.getStyle().sources
-).find(
-  ([, source]) => source.type === 'vector'
-)?.[0];
+        map.getStyle().sources
+      ).find(
+        ([, source]) => source.type === 'vector'
+      )?.[0];
 
-if (
-  vectorSourceId &&
-  !map.getLayer('studyspot-3d-buildings')
-) {
+      if (
+        vectorSourceId &&
+        !map.getLayer('studyspot-3d-buildings')
+      ) {
         const buildingLayer: FillExtrusionLayerSpecification =
           {
             id: 'studyspot-3d-buildings',
+
             type: 'fill-extrusion',
             source: vectorSourceId,
             'source-layer': 'building',
             minzoom: 14,
+
             paint: {
-              'fill-extrusion-color': [
-  'interpolate',
-  ['linear'],
-  [
-    'to-number',
-    [
-      'coalesce',
-      ['get', 'render_height'],
-      ['get', 'height'],
-      8,
-    ],
-  ],
-  0,
-  '#E1DED8',
-  25,
-  '#D4D0C8',
-  60,
-  '#C2BEB6',
-  120,
-  '#AAA69F',
-],
+              'fill-extrusion-color':
+                COLORS.mapBuilding,
               'fill-extrusion-height': [
                 'coalesce',
                 ['get', 'render_height'],
@@ -129,7 +147,7 @@ if (
                 ['get', 'render_min_height'],
                 0,
               ],
-              'fill-extrusion-opacity': 1,
+              'fill-extrusion-opacity': 0.82,
               'fill-extrusion-vertical-gradient': true,
             },
           };
@@ -150,22 +168,30 @@ if (
       onSelectRef.current(null);
     });
 
-    const resizeObserver = new ResizeObserver(() => {
-      map.resize();
-    });
+    const resizeObserver =
+      new ResizeObserver(() => {
+        map.resize();
+      });
 
-    resizeObserver.observe(containerRef.current);
+    resizeObserver.observe(
+      containerRef.current
+    );
 
     return () => {
       setMapReady(false);
+
       resizeObserver.disconnect();
 
-      markersRef.current.forEach((marker) => {
-        marker.remove();
-      });
+      markersRef.current.forEach(
+        (marker) => {
+          marker.remove();
+        }
+      );
+
       markersRef.current.clear();
 
       map.remove();
+
       mapRef.current = null;
     };
   }, []);
@@ -177,86 +203,137 @@ if (
       return;
     }
 
-    markersRef.current.forEach((marker) => {
-      marker.remove();
-    });
+    markersRef.current.forEach(
+      (marker) => {
+        marker.remove();
+      }
+    );
+
     markersRef.current.clear();
 
     spots.forEach((spot) => {
       const markerContainer =
-        document.createElement('div');
+        document.createElement(
+          'div'
+        );
+
       const markerButton =
-        document.createElement('button');
+        document.createElement(
+          'button'
+        );
 
-      markerButton.type = 'button';
-      markerButton.title = spot.name;
-      markerButton.dataset.spotId = spot.id;
+      markerButton.type =
+        'button';
 
-      Object.assign(markerButton.style, {
-        width: '24px',
-        height: '24px',
-        display: 'block',
-        padding: '0',
-        cursor: 'pointer',
-        borderRadius: '50%',
-        border: '3px solid white',
-        backgroundColor:
-          CROWD_COLORS[spot.crowd_level],
-        boxShadow:
-          '0 3px 12px rgba(0, 0, 0, 0.45)',
-        transition:
-          'width 150ms ease, height 150ms ease',
-      });
+      markerButton.title =
+        spot.name;
+
+      markerButton.dataset.spotId =
+        spot.id;
+
+      Object.assign(
+        markerButton.style,
+        {
+          width: '24px',
+
+          height: '24px',
+
+          display: 'block',
+
+          padding: '0',
+
+          cursor: 'pointer',
+
+          borderRadius: '50%',
+
+          border:
+            '3px solid rgba(255, 255, 255, 0.96)',
+
+          backgroundColor:
+            CROWD_COLORS[
+              spot.crowd_level
+            ],
+
+          boxShadow:
+            '0 4px 14px rgba(39, 34, 82, 0.20)',
+
+          transition:
+            'width 150ms ease, height 150ms ease, box-shadow 150ms ease',
+        }
+      );
 
       markerButton.addEventListener(
         'click',
         (event) => {
           event.stopPropagation();
-          onSelectRef.current(spot.id);
+
+          onSelectRef.current(
+            spot.id
+          );
         }
       );
 
-      markerContainer.appendChild(markerButton);
+      markerContainer.appendChild(
+        markerButton
+      );
 
-      const marker = new maplibregl.Marker({
-        element: markerContainer,
-        anchor: 'bottom',
-      })
-        .setLngLat([
-          spot.longitude,
-          spot.latitude,
-        ])
-        .addTo(map);
+      const marker =
+        new maplibregl.Marker({
+          element:
+            markerContainer,
 
-      markersRef.current.set(spot.id, marker);
+          anchor: 'bottom',
+        })
+          .setLngLat([
+            spot.longitude,
+            spot.latitude,
+          ])
+          .addTo(map);
+
+      markersRef.current.set(
+        spot.id,
+        marker
+      );
     });
   }, [spots, mapReady]);
 
   useEffect(() => {
-    markersRef.current.forEach((marker, id) => {
-      const button = marker
-        .getElement()
-        .querySelector(
-          'button'
-        ) as HTMLButtonElement | null;
+    markersRef.current.forEach(
+      (marker, id) => {
+        const button = marker
+          .getElement()
+          .querySelector(
+            'button'
+          ) as HTMLButtonElement | null;
 
-      if (!button) {
-        return;
+        if (!button) {
+          return;
+        }
+
+        const isSelected =
+          id === selectedId;
+
+        button.style.width =
+          isSelected
+            ? '32px'
+            : '24px';
+
+        button.style.height =
+          isSelected
+            ? '32px'
+            : '24px';
+
+        button.style.boxShadow =
+          isSelected
+            ? `0 0 0 6px ${COLORS.purple}26, 0 5px 18px rgba(39, 34, 82, 0.24)`
+            : '0 4px 14px rgba(39, 34, 82, 0.20)';
       }
-
-      const isSelected = id === selectedId;
-
-      button.style.width = isSelected
-        ? '32px'
-        : '24px';
-      button.style.height = isSelected
-        ? '32px'
-        : '24px';
-      button.style.boxShadow = isSelected
-        ? `0 0 0 5px ${COLORS.purple}55, 0 4px 16px rgba(0, 0, 0, 0.55)`
-        : '0 3px 12px rgba(0, 0, 0, 0.45)';
-    });
-  }, [selectedId, spots, mapReady]);
+    );
+  }, [
+    selectedId,
+    spots,
+    mapReady,
+  ]);
 
   return (
     <div
@@ -265,6 +342,9 @@ if (
         width: '100%',
         height: '100%',
         overflow: 'hidden',
+
+        background:
+          COLORS.backgroundSoft,
       }}
     />
   );
