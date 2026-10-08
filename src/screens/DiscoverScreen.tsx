@@ -122,6 +122,7 @@ export default function DiscoverScreen() {
       : STUDY_TYPE_LABELS[filters.studyType];
 
   const activeFilterCount =
+    (filters.query.trim() !== '' ? 1 : 0) +
     (filters.maxWalkMinutes !== null ? 1 : 0) +
     (filters.noiseLevel !== null ? 1 : 0) +
     (filters.studyType !== null ? 1 : 0) +

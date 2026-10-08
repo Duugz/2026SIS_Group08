@@ -24,6 +24,7 @@ export type StudySpot = {
 };
 
 export type StudySpotFilters = {
+  query: string;
   maxWalkMinutes: number | null;
   noiseLevel: CrowdLevel | null;
   studyType: StudyType | null;
@@ -32,6 +33,7 @@ export type StudySpotFilters = {
 };
 
 export const DEFAULT_STUDY_SPOT_FILTERS: StudySpotFilters = {
+  query: '',
   maxWalkMinutes: null,
   noiseLevel: null,
   studyType: null,
@@ -56,7 +58,14 @@ export function filterStudySpots(
   spots: StudySpot[],
   filters: StudySpotFilters
 ): StudySpot[] {
+  const query = filters.query.trim().toLowerCase();
+
   return spots.filter((spot) => {
+    const matchesQuery =
+      query === '' ||
+      spot.name.toLowerCase().includes(query) ||
+      (spot.description ?? '').toLowerCase().includes(query);
+
     const matchesDistance =
       filters.maxWalkMinutes === null ||
       spot.walk_minutes <= filters.maxWalkMinutes;
@@ -77,6 +86,7 @@ export function filterStudySpots(
       !filters.openNow || spot.is_open;
 
     return (
+      matchesQuery &&
       matchesDistance &&
       matchesNoise &&
       matchesStudyType &&

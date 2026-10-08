@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import {
+  type NavigationProp,
+  type ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import {
   Platform,
   ScrollView,
@@ -10,9 +14,24 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useStudySpots } from '../context/StudySpotsContext';
+import type { StudySpotFilters } from '../services/studySpots';
 import { COLORS } from '../theme';
 
+type ModePreset = Pick<
+  StudySpotFilters,
+  'maxWalkMinutes' | 'noiseLevel' | 'studyType' | 'facilities'
+>;
+
+const CLEARED_PRESET: ModePreset = {
+  maxWalkMinutes: null,
+  noiseLevel: null,
+  studyType: null,
+  facilities: [],
+};
+
 type StudyMode = {
+  preset: ModePreset;
   key: string;
   title: string;
   subtitle: string;
@@ -24,6 +43,7 @@ type StudyMode = {
 const STUDY_MODES: StudyMode[] = [
   {
     key: 'deep-focus',
+    preset: { ...CLEARED_PRESET, noiseLevel: 'quiet', studyType: 'solo' },
     title: 'Deep Focus',
     subtitle: 'Silence & minimal distractions',
     icon: 'book-outline',
@@ -32,6 +52,7 @@ const STUDY_MODES: StudyMode[] = [
   },
   {
     key: 'group-work',
+    preset: { ...CLEARED_PRESET, studyType: 'group', facilities: ['wifi'] },
     title: 'Group Work',
     subtitle: 'Spaces for teams',
     icon: 'people-outline',
@@ -40,6 +61,7 @@ const STUDY_MODES: StudyMode[] = [
   },
   {
     key: 'quick-study',
+    preset: { ...CLEARED_PRESET, maxWalkMinutes: 10 },
     title: 'Quick Study',
     subtitle: 'Short & productive',
     icon: 'flash-outline',
@@ -48,6 +70,7 @@ const STUDY_MODES: StudyMode[] = [
   },
   {
     key: 'casual-study',
+    preset: { ...CLEARED_PRESET, noiseLevel: 'moderate', facilities: ['food'] },
     title: 'Casual Study',
     subtitle: 'Relaxed spots & good vibes',
     icon: 'cafe-outline',
@@ -56,8 +79,29 @@ const STUDY_MODES: StudyMode[] = [
   },
 ];
 
+function presetMatches(filters: StudySpotFilters, preset: ModePreset) {
+  return (
+    filters.maxWalkMinutes === preset.maxWalkMinutes &&
+    filters.noiseLevel === preset.noiseLevel &&
+    filters.studyType === preset.studyType &&
+    filters.facilities.length === preset.facilities.length &&
+    preset.facilities.every((facility) => filters.facilities.includes(facility))
+  );
+}
+
 export default function HomeScreen() {
-  const [selectedMode, setSelectedMode] = useState('quick-study');
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const { filters, filteredSpots, loading, updateFilters } = useStudySpots();
+
+  const activeMode = STUDY_MODES.find((mode) => presetMatches(filters, mode.preset));
+  const hasQuery = filters.query.trim() !== '';
+  const showSummary = Boolean(activeMode) || hasQuery;
+
+  const toggleMode = (mode: StudyMode) => {
+    updateFilters(activeMode?.key === mode.key ? CLEARED_PRESET : mode.preset);
+  };
+
+  const openMap = () => navigation.navigate('Map');
 
   return (
     <SafeAreaView
@@ -124,11 +168,32 @@ export default function HomeScreen() {
             style={styles.searchInput}
             placeholder="Search location or study spot"
             placeholderTextColor={COLORS.textMuted}
+            value={filters.query}
+            onChangeText={(query) => updateFilters({ query })}
+            onSubmitEditing={openMap}
+            returnKeyType="search"
+            autoCorrect={false}
           />
+
+          {hasQuery && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => updateFilters({ query: '' })}
+              accessibilityLabel="Clear search"
+            >
+              <Ionicons
+                name="close-circle"
+                size={18}
+                color={COLORS.textMuted}
+              />
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             activeOpacity={0.7}
             style={styles.navigateButton}
+            onPress={openMap}
+            accessibilityLabel="Show results on map"
           >
             <Ionicons
               name="navigate-outline"
@@ -153,15 +218,13 @@ export default function HomeScreen() {
         <View style={styles.modeGrid}>
           {STUDY_MODES.map((mode) => {
             const isSelected =
-              selectedMode === mode.key;
+              activeMode?.key === mode.key;
 
             return (
               <TouchableOpacity
                 key={mode.key}
                 activeOpacity={0.82}
-                onPress={() =>
-                  setSelectedMode(mode.key)
-                }
+                onPress={() => toggleMode(mode)}
                 style={[
                   styles.modeCard,
                   {
@@ -224,6 +287,36 @@ export default function HomeScreen() {
             );
           })}
         </View>
+
+        {showSummary && (
+          <TouchableOpacity
+            activeOpacity={0.82}
+            style={styles.resultCard}
+            onPress={openMap}
+            disabled={loading || filteredSpots.length === 0}
+          >
+            <View style={styles.quickInfoText}>
+              <Text style={styles.quickInfoTitle}>
+                {loading
+                  ? 'Loading spots...'
+                  : `${filteredSpots.length} matching ${
+                      filteredSpots.length === 1 ? 'spot' : 'spots'
+                    }`}
+              </Text>
+
+              <Text style={styles.quickInfoSubtitle}>
+                {activeMode ? `${activeMode.title} mode` : 'Search results'}
+                {' · '}tap to view on the map
+              </Text>
+            </View>
+
+            <Ionicons
+              name="map-outline"
+              size={20}
+              color={COLORS.purple}
+            />
+          </TouchableOpacity>
+        )}
 
         <View style={styles.quickInfoCard}>
           <View style={styles.quickInfoIcon}>
@@ -517,6 +610,25 @@ const styles = StyleSheet.create({
 
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  resultCard: {
+    marginTop: 22,
+    marginBottom: -6,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    backgroundColor: COLORS.purpleSoft,
+
+    borderRadius: 18,
+
+    padding: 16,
+
+    borderWidth: 1,
+    borderColor: COLORS.purple,
+
+    gap: 12,
   },
 
   quickInfoCard: {
