@@ -12,6 +12,7 @@ import {
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
 
+import { ProfileProvider } from './src/context/ProfileContext';
 import { StudySpotsProvider } from './src/context/StudySpotsContext';
 import { COLORS } from './src/theme';
 import HomeScreen from './src/screens/HomeScreen';
@@ -66,6 +67,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StudySpotsProvider>
+        <ProfileProvider>
         <StatusBar style="dark" />
 
         <NavigationContainer>
@@ -107,6 +109,7 @@ export default function App() {
             <Tab.Screen name="Profile" component={ProfileScreen} />
           </Tab.Navigator>
         </NavigationContainer>
+        </ProfileProvider>
       </StudySpotsProvider>
     </SafeAreaProvider>
   );

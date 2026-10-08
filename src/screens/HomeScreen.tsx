@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useProfile } from '../context/ProfileContext';
 import { useStudySpots } from '../context/StudySpotsContext';
 import type { StudySpotFilters } from '../services/studySpots';
 import { COLORS } from '../theme';
@@ -79,6 +80,14 @@ const STUDY_MODES: StudyMode[] = [
   },
 ];
 
+function greetingFor(date: Date) {
+  const hour = date.getHours();
+
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
 function presetMatches(filters: StudySpotFilters, preset: ModePreset) {
   return (
     filters.maxWalkMinutes === preset.maxWalkMinutes &&
@@ -92,6 +101,7 @@ function presetMatches(filters: StudySpotFilters, preset: ModePreset) {
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const { filters, filteredSpots, loading, updateFilters } = useStudySpots();
+  const { displayName } = useProfile();
 
   const activeMode = STUDY_MODES.find((mode) => presetMatches(filters, mode.preset));
   const hasQuery = filters.query.trim() !== '';
@@ -147,7 +157,8 @@ export default function HomeScreen() {
 
         <View style={styles.hero}>
           <Text style={styles.greeting}>
-            Good evening, Alex 👋
+            {greetingFor(new Date())}
+            {displayName ? `, ${displayName}` : ''} 👋
           </Text>
 
           <Text style={styles.subGreeting}>

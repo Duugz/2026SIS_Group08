@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -12,6 +12,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
+import {
+  DISPLAY_NAME_MAX_LENGTH,
+  useProfile,
+} from '../context/ProfileContext';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../theme';
 
@@ -23,6 +27,37 @@ export default function ProfileScreen() {
     signUp,
     signOut,
   } = useAuth();
+
+  const { displayName, updateDisplayName } = useProfile();
+
+  const [nameDraft, setNameDraft] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [nameMessage, setNameMessage] = useState<{
+    kind: 'error' | 'info';
+    text: string;
+  } | null>(null);
+
+  useEffect(() => {
+    setNameDraft(displayName ?? '');
+  }, [displayName]);
+
+  const nameChanged =
+    nameDraft.trim() !== (displayName ?? '') &&
+    nameDraft.trim().length > 0;
+
+  const handleSaveName = async () => {
+    setNameMessage(null);
+    setSavingName(true);
+
+    const error = await updateDisplayName(nameDraft);
+
+    setSavingName(false);
+    setNameMessage(
+      error
+        ? { kind: 'error', text: error }
+        : { kind: 'info', text: 'Display name updated.' }
+    );
+  };
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -116,8 +151,14 @@ export default function ProfileScreen() {
             </View>
 
             <Text style={styles.title}>
-              {user.email}
+              {displayName ?? user.email}
             </Text>
+
+            {displayName && (
+              <Text style={styles.emailText}>
+                {user.email}
+              </Text>
+            )}
 
             <View style={styles.signedInBadge}>
               <View style={styles.signedInDot} />
@@ -131,6 +172,74 @@ export default function ProfileScreen() {
               Your favourites and preferences
               are synced to your account.
             </Text>
+
+            <View style={styles.form}>
+              <View style={styles.inputWrap}>
+                <View style={styles.inputIconWrap}>
+                  <Ionicons
+                    name="create-outline"
+                    size={17}
+                    color={COLORS.purple}
+                  />
+                </View>
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Display name"
+                  placeholderTextColor={COLORS.textMuted}
+                  value={nameDraft}
+                  onChangeText={(text) => {
+                    setNameDraft(text);
+                    setNameMessage(null);
+                  }}
+                  maxLength={DISPLAY_NAME_MAX_LENGTH}
+                  autoCorrect={false}
+                  onSubmitEditing={() => {
+                    if (nameChanged && !savingName) {
+                      void handleSaveName();
+                    }
+                  }}
+                />
+              </View>
+
+              {nameMessage && (
+                <View
+                  style={
+                    nameMessage.kind === 'error'
+                      ? styles.messageError
+                      : styles.messageInfo
+                  }
+                >
+                  <Text
+                    style={
+                      nameMessage.kind === 'error'
+                        ? styles.errorText
+                        : styles.infoText
+                    }
+                  >
+                    {nameMessage.text}
+                  </Text>
+                </View>
+              )}
+
+              <Pressable
+                onPress={handleSaveName}
+                disabled={!nameChanged || savingName}
+                style={({ pressed }) => [
+                  styles.submitButton,
+                  (!nameChanged || savingName) && styles.saveDisabled,
+                  pressed && styles.pressed,
+                ]}
+              >
+                {savingName ? (
+                  <ActivityIndicator color={COLORS.textOnAccent} />
+                ) : (
+                  <Text style={styles.submitButtonText}>
+                    Save name
+                  </Text>
+                )}
+              </Pressable>
+            </View>
 
             <Pressable
               onPress={() => signOut()}
@@ -548,6 +657,19 @@ const styles = StyleSheet.create({
     marginBottom: 18,
 
     textAlign: 'center',
+  },
+
+  emailText: {
+    color: COLORS.textSecondary,
+
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+
+    marginTop: 2,
+  },
+
+  saveDisabled: {
+    opacity: 0.45,
   },
 
   signedInBadge: {
