@@ -422,13 +422,9 @@ export default function MapScreen() {
             >
               <Ionicons
                 name="chatbubble-ellipses-outline"
-                size={15}
-                color={COLORS.textPrimary}
+                size={16}
+                color={COLORS.purple}
               />
-
-              <Text style={styles.reviewsButtonText}>
-                Reviews
-              </Text>
             </Pressable>
 
             {user && (
@@ -915,18 +911,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
   },
   reviewsButton: {
-    flexDirection: 'row',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
-    gap: 6,
-    minHeight: 34,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: COLORS.purple,
-  },
-  reviewsButtonText: {
-    color: COLORS.textPrimary,
-    fontSize: 12,
-    fontFamily: 'Poppins_600SemiBold',
+    justifyContent: 'center',
+    backgroundColor: `${COLORS.purple}18`,
   },
   previewClose: {
     width: 30,
