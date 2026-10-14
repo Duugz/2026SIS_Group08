@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -12,10 +13,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
+import SignInButtons from '../components/SignInButtons';
+import StarRating from '../components/StarRating';
 import {
   DISPLAY_NAME_MAX_LENGTH,
   useProfile,
 } from '../context/ProfileContext';
+import { useReviews } from '../context/ReviewsContext';
+import { useStudySpots } from '../context/StudySpotsContext';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../theme';
 
@@ -29,6 +34,29 @@ export default function ProfileScreen() {
   } = useAuth();
 
   const { displayName, updateDisplayName } = useProfile();
+  const { reviews } = useReviews();
+  const { spots } = useStudySpots();
+
+  const [signOutError, setSignOutError] = useState<string | null>(null);
+
+  const myReviews = user
+    ? reviews.filter((review) => review.user_id === user.id)
+    : [];
+
+  const spotName = (spotId: string) =>
+    spots.find((spot) => spot.id === spotId)?.name ?? 'Study spot';
+
+  const handleSignOut = async () => {
+    setSignOutError(null);
+
+    try {
+      await signOut();
+    } catch (error) {
+      setSignOutError(
+        error instanceof Error ? error.message : 'Unable to sign out'
+      );
+    }
+  };
 
   const [nameDraft, setNameDraft] = useState('');
   const [savingName, setSavingName] = useState(false);
@@ -140,7 +168,10 @@ export default function ProfileScreen() {
         <View style={styles.backgroundOrbOne} />
         <View style={styles.backgroundOrbTwo} />
 
-        <View style={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.profileCard}>
             <View style={styles.avatar}>
               <Ionicons
@@ -242,7 +273,9 @@ export default function ProfileScreen() {
             </View>
 
             <Pressable
-              onPress={() => signOut()}
+              onPress={() => {
+                void handleSignOut();
+              }}
               style={({ pressed }) => [
                 styles.signOutButton,
                 pressed && styles.pressed,
@@ -262,8 +295,42 @@ export default function ProfileScreen() {
                 Sign out
               </Text>
             </Pressable>
+
+            {signOutError && (
+              <Text style={styles.errorText}>
+                {signOutError}
+              </Text>
+            )}
           </View>
-        </View>
+
+          <View style={styles.reviewsWrap}>
+            <Text style={styles.sectionTitle}>
+              My reviews ({myReviews.length})
+            </Text>
+
+            {myReviews.length === 0 && (
+              <Text style={styles.reviewHint}>
+                Open a spot on the Map and tap Reviews to write your first one.
+              </Text>
+            )}
+
+            {myReviews.map((review) => (
+              <View key={review.id} style={styles.reviewCard}>
+                <View style={styles.reviewHeader}>
+                  <Text style={styles.reviewSpot} numberOfLines={1}>
+                    {spotName(review.spot_id)}
+                  </Text>
+
+                  <StarRating value={review.rating} size={12} />
+                </View>
+
+                {review.comment.length > 0 && (
+                  <Text style={styles.reviewComment}>{review.comment}</Text>
+                )}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -446,6 +513,10 @@ export default function ProfileScreen() {
                 </Text>
               </Text>
             </Pressable>
+
+            <Text style={styles.orText}>or continue with</Text>
+
+            <SignInButtons />
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -487,6 +558,72 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
 
     paddingHorizontal: 24,
+  },
+
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    gap: 16,
+  },
+
+  reviewsWrap: {
+    width: '100%',
+    maxWidth: 440,
+    gap: 10,
+  },
+
+  sectionTitle: {
+    color: COLORS.textPrimary,
+    fontSize: 15,
+    fontFamily: 'Poppins_600SemiBold',
+  },
+
+  reviewHint: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+    fontFamily: 'Poppins_400Regular',
+  },
+
+  reviewCard: {
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    gap: 6,
+  },
+
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+
+  reviewSpot: {
+    flex: 1,
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    fontFamily: 'Poppins_600SemiBold',
+  },
+
+  reviewComment: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+    fontFamily: 'Poppins_400Regular',
+  },
+
+  orText: {
+    color: COLORS.textMuted,
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+    textAlign: 'center',
+    marginTop: 6,
   },
 
   authCard: {

@@ -10,7 +10,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
+import SpotReviewsSheet from '../components/SpotReviewsSheet';
+import StarRating from '../components/StarRating';
 import StudyMap from '../components/StudyMap';
+import { useReviews } from '../context/ReviewsContext';
 import { useStudySpots } from '../context/StudySpotsContext';
 import { useAuth } from '../hooks/useAuth';
 import { useCheckIns } from '../hooks/useCheckIns';
@@ -48,6 +51,8 @@ export default function MapScreen() {
     string | null
   >(null);
 
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+
   const {
     filteredSpots,
     loading,
@@ -69,6 +74,8 @@ export default function MapScreen() {
     checkInsForSpot,
   } = useCheckIns();
 
+  const { summaries } = useReviews();
+
   const selectedSpot =
     filteredSpots.find(
       (spot) => spot.id === selectedId
@@ -81,6 +88,16 @@ export default function MapScreen() {
   const isCheckedInHere =
     selectedSpot !== null &&
     myCheckIn?.spotId === selectedSpot.id;
+
+  const selectedSummary = selectedSpot
+    ? summaries[selectedSpot.id]
+    : undefined;
+
+  useEffect(() => {
+    if (!selectedId) {
+      setReviewsOpen(false);
+    }
+  }, [selectedId]);
 
   useEffect(() => {
     if (
@@ -379,7 +396,40 @@ export default function MapScreen() {
                     .join(', ')}
                 </Text>
               )}
+
+              <View style={styles.previewRatingRow}>
+                <StarRating
+                  value={selectedSummary?.average ?? 0}
+                  size={12}
+                />
+
+                <Text style={styles.previewRatingText}>
+                  {selectedSummary
+                    ? `${selectedSummary.average.toFixed(1)} (${selectedSummary.count})`
+                    : 'No reviews yet'}
+                </Text>
+              </View>
             </View>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Reviews and sharing for ${selectedSpot.name}`}
+              onPress={() => setReviewsOpen(true)}
+              style={({ pressed }) => [
+                styles.reviewsButton,
+                pressed && styles.retryButtonPressed,
+              ]}
+            >
+              <Ionicons
+                name="chatbubble-ellipses-outline"
+                size={15}
+                color={COLORS.textPrimary}
+              />
+
+              <Text style={styles.reviewsButtonText}>
+                Reviews
+              </Text>
+            </Pressable>
 
             {user && (
               <TouchableOpacity
@@ -447,6 +497,12 @@ export default function MapScreen() {
           </View>
         )}
       </View>
+
+      <SpotReviewsSheet
+        spot={selectedSpot}
+        visible={reviewsOpen && selectedSpot !== null}
+        onClose={() => setReviewsOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -847,6 +903,31 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  previewRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  previewRatingText: {
+    color: COLORS.textSecondary,
+    fontSize: 10,
+    fontFamily: 'Poppins_400Regular',
+  },
+  reviewsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 34,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: COLORS.purple,
+  },
+  reviewsButtonText: {
+    color: COLORS.textPrimary,
+    fontSize: 12,
+    fontFamily: 'Poppins_600SemiBold',
+  },
   previewClose: {
     width: 30,
     height: 30,

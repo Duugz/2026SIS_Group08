@@ -2,6 +2,7 @@
   "expo": {
     "name": "studyspot-app",
     "slug": "studyspot-app",
+    "scheme": "studyspot",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -29,7 +30,8 @@
     "plugins": [
       "expo-font",
       "@maplibre/maplibre-react-native",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-web-browser"
     ]
   }
 }

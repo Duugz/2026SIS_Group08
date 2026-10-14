@@ -14,6 +14,7 @@ import {
 
 import { ProfileProvider } from './src/context/ProfileContext';
 import { StudySpotsProvider } from './src/context/StudySpotsContext';
+import { ReviewsProvider } from './src/context/ReviewsContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { FavouritesProvider } from './src/context/FavouritesContext';
 import { CheckInsProvider } from './src/hooks/useCheckIns';
@@ -72,6 +73,7 @@ export default function App() {
       <AuthProvider>
         <FavouritesProvider>
       <StudySpotsProvider>
+        <ReviewsProvider>
         <ProfileProvider>
           <CheckInsProvider>
             <StatusBar style="dark" />
@@ -117,6 +119,7 @@ export default function App() {
             </NavigationContainer>
           </CheckInsProvider>
         </ProfileProvider>
+        </ReviewsProvider>
       </StudySpotsProvider>
         </FavouritesProvider>
       </AuthProvider>
