@@ -13,6 +13,8 @@ import {
 } from '@expo-google-fonts/poppins';
 
 import { StudySpotsProvider } from './src/context/StudySpotsContext';
+import { AuthProvider } from './src/context/AuthContext';
+import { FavouritesProvider } from './src/context/FavouritesContext';
 import { COLORS } from './src/theme';
 import HomeScreen from './src/screens/HomeScreen';
 import MapScreen from './src/screens/MapScreen';
@@ -44,7 +46,9 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <StudySpotsProvider>
+      <AuthProvider>
+        <FavouritesProvider>
+        <StudySpotsProvider>
         <StatusBar style="light" />
 
         <NavigationContainer>
@@ -68,6 +72,8 @@ export default function App() {
           </Tab.Navigator>
         </NavigationContainer>
       </StudySpotsProvider>
+        </FavouritesProvider>
+        </AuthProvider>
     </SafeAreaProvider>
   );
 }
