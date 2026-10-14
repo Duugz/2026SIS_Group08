@@ -9,10 +9,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
+import SpotReviewsSheet from '../components/SpotReviewsSheet';
+import StarRating from '../components/StarRating';
 import StudyMap from '../components/StudyMap';
+import { useReviews } from '../context/ReviewsContext';
 import { useStudySpots } from '../context/StudySpotsContext';
-import { useAuth } from '../hooks/useAuth';
-import { useFavourites } from '../hooks/useFavourites';
 import type { CrowdLevel } from '../services/studySpots';
 import { COLORS } from '../theme';
 
@@ -38,6 +39,9 @@ export default function MapScreen() {
   const [selectedId, setSelectedId] = useState<
     string | null
   >(null);
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+
+  const { summaries } = useReviews();
 
   const {
     filteredSpots,
@@ -45,9 +49,6 @@ export default function MapScreen() {
     error,
     refresh,
   } = useStudySpots();
-
-  const { user } = useAuth();
-  const { favouriteIds, toggle: toggleFavourite } = useFavourites();
 
   const selectedSpot =
     filteredSpots.find(
@@ -64,6 +65,16 @@ export default function MapScreen() {
       setSelectedId(null);
     }
   }, [filteredSpots, selectedId]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setReviewsOpen(false);
+    }
+  }, [selectedId]);
+
+  const selectedSummary = selectedSpot
+    ? summaries[selectedSpot.id]
+    : undefined;
 
   const handleSelect = (id: string | null) => {
     setSelectedId((currentId) =>
@@ -262,21 +273,40 @@ export default function MapScreen() {
               {' · '}
               {selectedSpot.is_open ? 'Open' : 'Closed'}
             </Text>
+
+            <View style={styles.previewRatingRow}>
+              <StarRating
+                value={selectedSummary?.average ?? 0}
+                size={12}
+              />
+
+              <Text style={styles.previewRatingText}>
+                {selectedSummary
+                  ? `${selectedSummary.average.toFixed(1)} (${selectedSummary.count})`
+                  : 'No reviews yet'}
+              </Text>
+            </View>
           </View>
 
-          {user && (
-            <TouchableOpacity
-              activeOpacity={0.7}
-              style={styles.previewHeart}
-              onPress={() => toggleFavourite(selectedSpot.id)}
-            >
-              <Ionicons
-                name={favouriteIds.has(selectedSpot.id) ? 'heart' : 'heart-outline'}
-                size={18}
-                color={COLORS.pink}
-              />
-            </TouchableOpacity>
-          )}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Reviews and sharing for ${selectedSpot.name}`}
+            onPress={() => setReviewsOpen(true)}
+            style={({ pressed }) => [
+              styles.reviewsButton,
+              pressed && styles.retryButtonPressed,
+            ]}
+          >
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={15}
+              color={COLORS.textPrimary}
+            />
+
+            <Text style={styles.reviewsButtonText}>
+              Reviews
+            </Text>
+          </Pressable>
 
           <TouchableOpacity
             activeOpacity={0.7}
@@ -291,6 +321,12 @@ export default function MapScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      <SpotReviewsSheet
+        spot={selectedSpot}
+        visible={reviewsOpen && selectedSpot !== null}
+        onClose={() => setReviewsOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -473,6 +509,31 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
     marginTop: 3,
   },
+  previewRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  previewRatingText: {
+    color: COLORS.textSecondary,
+    fontSize: 10,
+    fontFamily: 'Poppins_400Regular',
+  },
+  reviewsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 34,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: COLORS.purple,
+  },
+  reviewsButtonText: {
+    color: COLORS.textPrimary,
+    fontSize: 12,
+    fontFamily: 'Poppins_600SemiBold',
+  },
   previewClose: {
     width: 28,
     height: 28,
@@ -480,13 +541,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.background,
-  },
-  previewHeart: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: `${COLORS.pink}18`,
   },
 });

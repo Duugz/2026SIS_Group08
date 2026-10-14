@@ -1,204 +1,286 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
+  Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../hooks/useAuth';
+
+import SignInButtons from '../components/SignInButtons';
+import StarRating from '../components/StarRating';
+import { useAuth } from '../context/AuthContext';
+import { useReviews } from '../context/ReviewsContext';
+import { useStudySpots } from '../context/StudySpotsContext';
 import { COLORS } from '../theme';
 
+const PROVIDER_LABELS: Record<string, string> = {
+  google: 'Google',
+  facebook: 'Facebook',
+};
+
 export default function ProfileScreen() {
-  const { user, loading, signIn, signUp, signOut } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
-  const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const { profile, loading, signOut } = useAuth();
+  const { reviews } = useReviews();
+  const { spots } = useStudySpots();
+  const [signOutError, setSignOutError] = useState<string | null>(null);
 
-  const handleSubmit = async () => {
-    setFormError(null);
-    setInfoMessage(null);
+  const myReviews = profile
+    ? reviews.filter((review) => review.user_id === profile.id)
+    : [];
 
-    if (!email || !password) {
-      setFormError('Enter an email and password.');
-      return;
-    }
+  const spotName = (spotId: string) =>
+    spots.find((spot) => spot.id === spotId)?.name ?? 'Study spot';
 
-    setSubmitting(true);
-    const { error } =
-      mode === 'sign-in' ? await signIn(email, password) : await signUp(email, password);
-    setSubmitting(false);
+  const handleSignOut = async () => {
+    setSignOutError(null);
 
-    if (error) {
-      setFormError(error.message);
-      return;
-    }
-
-    if (mode === 'sign-up') {
-      setInfoMessage('Account created — check your email to confirm, then sign in.');
+    try {
+      await signOut();
+    } catch (error) {
+      setSignOutError(
+        error instanceof Error ? error.message : 'Unable to sign out'
+      );
     }
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <View style={styles.content}>
-          <ActivityIndicator color={COLORS.purple} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (user) {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <View style={styles.content}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={32} color={COLORS.purple} />
-          </View>
-          <Text style={styles.title}>{user.email}</Text>
-          <Text style={styles.subtitle}>Signed in</Text>
-
-          <Pressable
-            onPress={() => signOut()}
-            style={({ pressed }) => [styles.signOutButton, pressed && styles.pressed]}
-          >
-            <Text style={styles.signOutButtonText}>Sign out</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.content}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>{mode === 'sign-in' ? 'Sign in' : 'Create an account'}</Text>
-        <Text style={styles.subtitle}>Save favourites and personalise your profile</Text>
+        <Text style={styles.title}>Profile</Text>
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={COLORS.textSecondary}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={COLORS.textSecondary}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+        {loading ? (
+          <ActivityIndicator color={COLORS.purple} />
+        ) : profile ? (
+          <>
+            <View style={styles.card}>
+              <View style={styles.accountRow}>
+                {profile.avatarUrl ? (
+                  <Image
+                    source={{ uri: profile.avatarUrl }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <View style={[styles.avatar, styles.avatarFallback]}>
+                    <Text style={styles.avatarText}>
+                      {profile.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
 
-          {formError && <Text style={styles.errorText}>{formError}</Text>}
-          {infoMessage && <Text style={styles.infoText}>{infoMessage}</Text>}
+                <View style={styles.accountText}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {profile.name}
+                  </Text>
 
-          <Pressable
-            onPress={handleSubmit}
-            disabled={submitting}
-            style={({ pressed }) => [
-              styles.submitButton,
-              (pressed || submitting) && styles.pressed,
-            ]}
-          >
-            {submitting ? (
-              <ActivityIndicator color={COLORS.textPrimary} />
-            ) : (
-              <Text style={styles.submitButtonText}>
-                {mode === 'sign-in' ? 'Sign in' : 'Sign up'}
+                  <Text style={styles.subtitle}>
+                    Signed in with{' '}
+                    {PROVIDER_LABELS[profile.provider ?? ''] ??
+                      profile.provider ??
+                      'email'}
+                  </Text>
+                </View>
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  void handleSignOut();
+                }}
+                style={({ pressed }) => [
+                  styles.signOutButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Ionicons
+                  name="log-out-outline"
+                  size={16}
+                  color={COLORS.textPrimary}
+                />
+                <Text style={styles.signOutText}>Sign out</Text>
+              </Pressable>
+
+              {signOutError && (
+                <Text style={styles.error}>{signOutError}</Text>
+              )}
+            </View>
+
+            <Text style={styles.sectionTitle}>
+              My reviews ({myReviews.length})
+            </Text>
+
+            {myReviews.length === 0 && (
+              <Text style={styles.subtitle}>
+                Open a spot on the Map and tap Reviews to write your first one.
               </Text>
             )}
-          </Pressable>
 
-          <Pressable
-            onPress={() => {
-              setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
-              setFormError(null);
-              setInfoMessage(null);
-            }}
-          >
-            <Text style={styles.switchModeText}>
-              {mode === 'sign-in'
-                ? "Don't have an account? Sign up"
-                : 'Already have an account? Sign in'}
+            {myReviews.map((review) => (
+              <View key={review.id} style={styles.reviewCard}>
+                <View style={styles.reviewHeader}>
+                  <Text style={styles.reviewSpot} numberOfLines={1}>
+                    {spotName(review.spot_id)}
+                  </Text>
+
+                  <StarRating value={review.rating} size={12} />
+                </View>
+
+                {review.comment.length > 0 && (
+                  <Text style={styles.reviewComment}>{review.comment}</Text>
+                )}
+              </View>
+            ))}
+          </>
+        ) : (
+          <View style={styles.card}>
+            <View style={styles.signInIcon}>
+              <Ionicons name="person-outline" size={24} color={COLORS.purple} />
+            </View>
+
+            <Text style={styles.name}>Sign in to StudySpot</Text>
+
+            <Text style={styles.subtitle}>
+              Post reviews with your name and photo, edit them later, and keep
+              track of the spots you’ve reviewed.
             </Text>
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
+
+            <SignInButtons />
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.background },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 24 },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: `${COLORS.purple}26`,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
-  title: { color: COLORS.textPrimary, fontSize: 20, fontFamily: 'Poppins_600SemiBold' },
-  subtitle: { color: COLORS.textSecondary, fontSize: 14, fontFamily: 'Poppins_400Regular', marginBottom: 12, textAlign: 'center' },
-  form: { width: '100%', gap: 12 },
-  input: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    height: 48,
+  content: {
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 24,
+    gap: 14,
+  },
+  title: {
     color: COLORS.textPrimary,
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
+    fontSize: 22,
+    fontFamily: 'Poppins_700Bold',
+  },
+  card: {
+    padding: 18,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    gap: 14,
   },
-  errorText: { color: COLORS.pink, fontFamily: 'Poppins_400Regular', fontSize: 13 },
-  infoText: { color: COLORS.green, fontFamily: 'Poppins_400Regular', fontSize: 13 },
-  submitButton: {
-    backgroundColor: COLORS.purple,
-    borderRadius: 14,
-    height: 48,
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  avatarFallback: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    backgroundColor: `${COLORS.purple}30`,
   },
-  submitButtonText: { color: COLORS.textPrimary, fontFamily: 'Poppins_600SemiBold', fontSize: 14 },
-  switchModeText: {
+  avatarText: {
+    color: COLORS.purple,
+    fontSize: 22,
+    fontFamily: 'Poppins_600SemiBold',
+  },
+  accountText: {
+    flex: 1,
+  },
+  name: {
+    color: COLORS.textPrimary,
+    fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
+  },
+  subtitle: {
     color: COLORS.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
     fontFamily: 'Poppins_400Regular',
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 4,
+  },
+  signInIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: `${COLORS.purple}20`,
   },
   signOutButton: {
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 14,
-    paddingHorizontal: 24,
-    height: 44,
+    minHeight: 42,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.background,
   },
-  signOutButtonText: { color: COLORS.pink, fontFamily: 'Poppins_600SemiBold', fontSize: 14 },
-  pressed: { opacity: 0.7 },
+  signOutText: {
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    fontFamily: 'Poppins_500Medium',
+  },
+  error: {
+    color: COLORS.pink,
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+  },
+  sectionTitle: {
+    color: COLORS.textPrimary,
+    fontSize: 15,
+    fontFamily: 'Poppins_600SemiBold',
+    marginTop: 4,
+  },
+  reviewCard: {
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    gap: 6,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  reviewSpot: {
+    flex: 1,
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    fontFamily: 'Poppins_500Medium',
+  },
+  reviewComment: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    lineHeight: 19,
+    fontFamily: 'Poppins_400Regular',
+  },
+  pressed: {
+    opacity: 0.75,
+  },
 });
