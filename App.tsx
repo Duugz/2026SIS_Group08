@@ -14,6 +14,8 @@ import {
 
 import { ProfileProvider } from './src/context/ProfileContext';
 import { StudySpotsProvider } from './src/context/StudySpotsContext';
+import { AuthProvider } from './src/context/AuthContext';
+import { FavouritesProvider } from './src/context/FavouritesContext';
 import { CheckInsProvider } from './src/hooks/useCheckIns';
 import { COLORS } from './src/theme';
 import HomeScreen from './src/screens/HomeScreen';
@@ -67,6 +69,8 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <AuthProvider>
+        <FavouritesProvider>
       <StudySpotsProvider>
         <ProfileProvider>
           <CheckInsProvider>
@@ -114,6 +118,8 @@ export default function App() {
           </CheckInsProvider>
         </ProfileProvider>
       </StudySpotsProvider>
+        </FavouritesProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }
