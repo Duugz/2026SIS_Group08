@@ -266,8 +266,7 @@ create policy "Users can check themselves out"
 -- ============================================================
 -- spot_reviews - star ratings and comments on study spots.
 -- Signed-in (Google / Facebook) reviews are linked to the account;
--- guest reviews leave user_id empty. Folded in from the old
--- supabase/migrations/20260925_spot_reviews.sql.
+-- guest reviews leave user_id empty.
 -- ============================================================
 
 create table if not exists public.spot_reviews (

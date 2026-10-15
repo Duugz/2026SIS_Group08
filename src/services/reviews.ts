@@ -36,7 +36,7 @@ const MISSING_TABLE_CODE = 'PGRST205';
 export class ReviewsNotSetUpError extends Error {
   constructor() {
     super(
-      'Reviews aren’t set up yet. Run supabase/migrations/20260925_spot_reviews.sql in the Supabase SQL editor.'
+      'Reviews aren’t set up yet. Run supabase/schema.sql in the Supabase SQL editor.'
     );
   }
 }
