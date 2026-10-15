@@ -11,6 +11,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { type SocialProvider, useAuth } from '../context/AuthContext';
 import { COLORS } from '../theme';
 
+// Google / Facebook sign-in only works once each provider is switched on in
+// Supabase. Set EXPO_PUBLIC_SOCIAL_LOGIN=true in .env to show the buttons.
+export const SOCIAL_LOGIN_ENABLED =
+  process.env.EXPO_PUBLIC_SOCIAL_LOGIN === 'true';
+
 const PROVIDERS: {
   provider: SocialProvider;
   label: string;
@@ -54,6 +59,10 @@ export default function SignInButtons() {
       setPending(null);
     }
   };
+
+  if (!SOCIAL_LOGIN_ENABLED) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>

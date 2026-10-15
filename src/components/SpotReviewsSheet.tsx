@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import ShareButtons from './ShareButtons';
 import ShareCardPreview from './ShareCardPreview';
-import SignInButtons from './SignInButtons';
+import SignInButtons, { SOCIAL_LOGIN_ENABLED } from './SignInButtons';
 import StarRating from './StarRating';
 import { useAuth } from '../context/AuthContext';
 import { useReviews } from '../context/ReviewsContext';
@@ -326,7 +326,7 @@ export default function SpotReviewsSheet({
                         <Text style={styles.postingAsName}>{profile.name}</Text>
                       </Text>
                     </View>
-                  ) : (
+                  ) : SOCIAL_LOGIN_ENABLED ? (
                     <View style={styles.signInPrompt}>
                       <Text style={styles.helperText}>
                         Sign in to post with your name and photo, or post as a
@@ -334,6 +334,13 @@ export default function SpotReviewsSheet({
                       </Text>
 
                       <SignInButtons />
+                    </View>
+                  ) : (
+                    <View style={styles.signInPrompt}>
+                      <Text style={styles.helperText}>
+                        Sign in on the Profile tab to post with your name, or
+                        post as a guest below.
+                      </Text>
                     </View>
                   )}
 

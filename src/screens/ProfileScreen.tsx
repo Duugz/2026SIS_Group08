@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import SignInButtons from '../components/SignInButtons';
+import SignInButtons, { SOCIAL_LOGIN_ENABLED } from '../components/SignInButtons';
 import StarRating from '../components/StarRating';
 import {
   DISPLAY_NAME_MAX_LENGTH,
@@ -514,9 +514,13 @@ export default function ProfileScreen() {
               </Text>
             </Pressable>
 
-            <Text style={styles.orText}>or continue with</Text>
+            {SOCIAL_LOGIN_ENABLED && (
+              <>
+                <Text style={styles.orText}>or continue with</Text>
 
-            <SignInButtons />
+                <SignInButtons />
+              </>
+            )}
           </View>
         </View>
       </KeyboardAvoidingView>
