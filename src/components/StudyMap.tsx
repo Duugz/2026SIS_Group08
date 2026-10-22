@@ -1,3 +1,4 @@
+
 import {
   Pressable,
   StyleSheet,
@@ -37,8 +38,28 @@ const BUILDING_LAYER: LayerSpecification = {
   minzoom: 14,
 
   paint: {
-    'fill-extrusion-color':
-      COLORS.mapBuilding,
+    'fill-extrusion-color': [
+      'interpolate',
+      ['linear'],
+      [
+        'to-number',
+        [
+          'coalesce',
+          ['get', 'render_height'],
+          ['get', 'height'],
+          8,
+        ],
+      ],
+      0,
+      '#E1DED8',
+      25,
+      '#D4D0C8',
+      60,
+      '#C2BEB6',
+      120,
+      '#AAA69F',
+    ],
+
     'fill-extrusion-height': [
       'coalesce',
       ['get', 'render_height'],
@@ -84,9 +105,7 @@ export default function StudyMap({
           selectedId === spot.id;
 
         const colour =
-          CROWD_COLORS[
-            spot.crowd_level
-          ];
+          CROWD_COLORS[spot.crowd_level];
 
         return (
           <ViewAnnotation
@@ -115,21 +134,16 @@ export default function StudyMap({
                 style={[
                   styles.marker,
                   {
-                    backgroundColor:
-                      colour,
-
+                    backgroundColor: colour,
                     width: isSelected
                       ? 28
                       : 22,
-
                     height: isSelected
                       ? 28
                       : 22,
-
-                    borderRadius:
-                      isSelected
-                        ? 14
-                        : 11,
+                    borderRadius: isSelected
+                      ? 14
+                      : 11,
                   },
                 ]}
               />
@@ -149,9 +163,7 @@ const styles = StyleSheet.create({
   markerOuter: {
     width: 32,
     height: 32,
-
     borderRadius: 16,
-
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -159,22 +171,16 @@ const styles = StyleSheet.create({
   markerOuterSelected: {
     width: 40,
     height: 40,
-
     borderRadius: 20,
-
-    backgroundColor:
-      `${COLORS.purple}26`,
+    backgroundColor: `${COLORS.purple}26`,
   },
 
   marker: {
     borderWidth: 3,
     borderColor: '#FFFFFF',
 
-    shadowColor:
-      COLORS.shadowStrong,
-
+    shadowColor: COLORS.shadowStrong,
     shadowOpacity: 1,
-
     shadowRadius: 7,
 
     shadowOffset: {

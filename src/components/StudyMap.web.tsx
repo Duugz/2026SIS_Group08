@@ -1,3 +1,4 @@
+
 import {
   useEffect,
   useRef,
@@ -36,21 +37,16 @@ export default function StudyMap({
   onSelect,
 }: StudyMapProps) {
   const containerRef =
-    useRef<HTMLDivElement | null>(
-      null
-    );
+    useRef<HTMLDivElement | null>(null);
 
   const mapRef =
-    useRef<maplibregl.Map | null>(
-      null
-    );
+    useRef<maplibregl.Map | null>(null);
 
   const markersRef = useRef<
     Map<string, maplibregl.Marker>
   >(new Map());
 
-  const onSelectRef =
-    useRef(onSelect);
+  const onSelectRef = useRef(onSelect);
 
   const [mapReady, setMapReady] =
     useState(false);
@@ -67,41 +63,30 @@ export default function StudyMap({
       return;
     }
 
-    const map =
-      new maplibregl.Map({
-        container:
-          containerRef.current,
+    const map = new maplibregl.Map({
+      container: containerRef.current,
+      style: MAP_STYLE,
+      center: UTS_MAP_CENTER,
+      zoom: 15.5,
+      pitch: 60,
+      bearing: -20,
 
-        style: MAP_STYLE,
+      canvasContextAttributes: {
+        antialias: true,
+      },
 
-        center: UTS_MAP_CENTER,
-
-        zoom: 15.5,
-
-        pitch: 60,
-
-        bearing: -20,
-
-        canvasContextAttributes: {
-          antialias: true,
-        },
-
-        attributionControl: false,
-      });
+      attributionControl: false,
+    });
 
     mapRef.current = map;
 
     map.on('load', () => {
-      const firstLabelLayer =
-        map
-          .getStyle()
-          .layers?.find(
-            (
-              layer: LayerSpecification
-            ) =>
-              layer.type ===
-              'symbol'
-          )?.id;
+      const firstLabelLayer = map
+        .getStyle()
+        .layers?.find(
+          (layer: LayerSpecification) =>
+            layer.type === 'symbol'
+        )?.id;
 
       const vectorSourceId = Object.entries(
         map.getStyle().sources
@@ -113,35 +98,59 @@ export default function StudyMap({
         vectorSourceId &&
         !map.getLayer('studyspot-3d-buildings')
       ) {
-        const buildingLayer: FillExtrusionLayerSpecification =
-          {
-            id: 'studyspot-3d-buildings',
+        const buildingLayer: FillExtrusionLayerSpecification = {
+          id: 'studyspot-3d-buildings',
+          type: 'fill-extrusion',
+          source: vectorSourceId,
+          'source-layer': 'building',
+          minzoom: 14,
 
-            type: 'fill-extrusion',
-            source: vectorSourceId,
-            'source-layer': 'building',
-            minzoom: 14,
-
-            paint: {
-              'fill-extrusion-color':
-                COLORS.mapBuilding,
-              'fill-extrusion-height': [
-                'coalesce',
-                ['get', 'render_height'],
-                ['get', 'height'],
-                8,
+          paint: {
+            'fill-extrusion-color': [
+              'interpolate',
+              ['linear'],
+              [
+                'to-number',
+                [
+                  'coalesce',
+                  ['get', 'render_height'],
+                  ['get', 'height'],
+                  8,
+                ],
               ],
-              'fill-extrusion-base': [
-                'coalesce',
-                ['get', 'render_min_height'],
-                0,
-              ],
-              'fill-extrusion-opacity': 0.82,
-              'fill-extrusion-vertical-gradient': true,
-            },
-          };
+              0,
+              '#E1DED8',
+              25,
+              '#D4D0C8',
+              60,
+              '#C2BEB6',
+              120,
+              '#AAA69F',
+            ],
 
-        map.addLayer(buildingLayer, firstLabelLayer);
+            'fill-extrusion-height': [
+              'coalesce',
+              ['get', 'render_height'],
+              ['get', 'height'],
+              8,
+            ],
+
+            'fill-extrusion-base': [
+              'coalesce',
+              ['get', 'render_min_height'],
+              0,
+            ],
+
+            'fill-extrusion-opacity': 1,
+            'fill-extrusion-vertical-gradient': true,
+          },
+        };
+
+        map.addLayer(
+          buildingLayer,
+          firstLabelLayer
+        );
+
         map.setLight({
           anchor: 'map',
           color: '#FFFFFF',
@@ -202,46 +211,30 @@ export default function StudyMap({
 
     spots.forEach((spot) => {
       const markerContainer =
-        document.createElement(
-          'div'
-        );
+        document.createElement('div');
 
       const markerButton =
-        document.createElement(
-          'button'
-        );
+        document.createElement('button');
 
-      markerButton.type =
-        'button';
-
-      markerButton.title =
-        spot.name;
-
-      markerButton.dataset.spotId =
-        spot.id;
+      markerButton.type = 'button';
+      markerButton.title = spot.name;
+      markerButton.dataset.spotId = spot.id;
 
       Object.assign(
         markerButton.style,
         {
           width: '24px',
-
           height: '24px',
-
           display: 'block',
-
           padding: '0',
-
           cursor: 'pointer',
-
           borderRadius: '50%',
 
           border:
             '3px solid rgba(255, 255, 255, 0.96)',
 
           backgroundColor:
-            CROWD_COLORS[
-              spot.crowd_level
-            ],
+            CROWD_COLORS[spot.crowd_level],
 
           boxShadow:
             '0 4px 14px rgba(39, 34, 82, 0.20)',
@@ -255,10 +248,7 @@ export default function StudyMap({
         'click',
         (event) => {
           event.stopPropagation();
-
-          onSelectRef.current(
-            spot.id
-          );
+          onSelectRef.current(spot.id);
         }
       );
 
@@ -268,9 +258,7 @@ export default function StudyMap({
 
       const marker =
         new maplibregl.Marker({
-          element:
-            markerContainer,
-
+          element: markerContainer,
           anchor: 'bottom',
         })
           .setLngLat([
@@ -303,14 +291,10 @@ export default function StudyMap({
           id === selectedId;
 
         button.style.width =
-          isSelected
-            ? '32px'
-            : '24px';
+          isSelected ? '32px' : '24px';
 
         button.style.height =
-          isSelected
-            ? '32px'
-            : '24px';
+          isSelected ? '32px' : '24px';
 
         button.style.boxShadow =
           isSelected
@@ -331,9 +315,7 @@ export default function StudyMap({
         width: '100%',
         height: '100%',
         overflow: 'hidden',
-
-        background:
-          COLORS.backgroundSoft,
+        background: COLORS.backgroundSoft,
       }}
     />
   );
