@@ -552,7 +552,8 @@ const styles = StyleSheet.create({
   },
 
   modeCard: {
-    width: '48%',
+    flexBasis: '45%',
+    flexGrow: 1,
 
     minHeight: 138,
 
