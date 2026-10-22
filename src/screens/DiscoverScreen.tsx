@@ -1,4 +1,5 @@
 import {
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -155,14 +156,19 @@ export default function DiscoverScreen() {
       style={styles.safeArea}
       edges={['top', 'left', 'right']}
     >
+      <View style={styles.backgroundOrbOne} />
+      <View style={styles.backgroundOrbTwo} />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Discover</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>
+              Discover
+            </Text>
 
             <Text style={styles.subtitle}>
               Find a study spot that works for you
@@ -177,6 +183,12 @@ export default function DiscoverScreen() {
                 pressed && styles.pressed,
               ]}
             >
+              <Ionicons
+                name="close-circle-outline"
+                size={16}
+                color={COLORS.purple}
+              />
+
               <Text style={styles.clearButtonText}>
                 Clear all
               </Text>
@@ -187,11 +199,13 @@ export default function DiscoverScreen() {
         {error && (
           <View style={styles.errorCard}>
             <View style={styles.errorContent}>
-              <Ionicons
-                name="alert-circle-outline"
-                size={20}
-                color={COLORS.pink}
-              />
+              <View style={styles.errorIconWrap}>
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={20}
+                  color={COLORS.pink}
+                />
+              </View>
 
               <View style={styles.errorTextContainer}>
                 <Text style={styles.errorTitle}>
@@ -232,7 +246,8 @@ export default function DiscoverScreen() {
             value={distance}
             onChange={(value) => {
               updateFilters({
-                maxWalkMinutes: DISTANCE_VALUES[value],
+                maxWalkMinutes:
+                  DISTANCE_VALUES[value],
               });
             }}
           />
@@ -250,7 +265,8 @@ export default function DiscoverScreen() {
             value={noiseLevel}
             onChange={(value) => {
               updateFilters({
-                noiseLevel: NOISE_VALUES[value],
+                noiseLevel:
+                  NOISE_VALUES[value],
               });
             }}
           />
@@ -268,7 +284,8 @@ export default function DiscoverScreen() {
             value={studyType}
             onChange={(value) => {
               updateFilters({
-                studyType: STUDY_TYPE_VALUES[value],
+                studyType:
+                  STUDY_TYPE_VALUES[value],
               });
             }}
           />
@@ -302,7 +319,9 @@ export default function DiscoverScreen() {
           subtitle="Only show locations currently available"
           value={filters.openNow}
           onValueChange={(value) => {
-            updateFilters({ openNow: value });
+            updateFilters({
+              openNow: value,
+            });
           }}
         />
       </ScrollView>
@@ -315,7 +334,9 @@ export default function DiscoverScreen() {
             </Text>
 
             <Text style={styles.resultLabel}>
-              {loading ? 'loading spots' : 'matching spots'}
+              {loading
+                ? 'loading spots'
+                : 'matching spots'}
             </Text>
           </View>
 
@@ -328,7 +349,8 @@ export default function DiscoverScreen() {
             onPress={showResults}
             style={({ pressed }) => [
               styles.showButton,
-              buttonDisabled && styles.showButtonDisabled,
+              buttonDisabled &&
+                styles.showButtonDisabled,
               pressed &&
                 !buttonDisabled &&
                 styles.showButtonPressed,
@@ -344,7 +366,7 @@ export default function DiscoverScreen() {
               <Ionicons
                 name="arrow-forward"
                 size={18}
-                color={COLORS.textPrimary}
+                color={COLORS.textOnAccent}
               />
             )}
           </Pressable>
@@ -376,7 +398,9 @@ function FilterHeading({
       </View>
 
       <View style={styles.filterHeadingText}>
-        <Text style={styles.filterTitle}>{title}</Text>
+        <Text style={styles.filterTitle}>
+          {title}
+        </Text>
 
         <Text style={styles.filterSubtitle}>
           {subtitle}
@@ -390,19 +414,43 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,
+    overflow: 'hidden',
   },
+
+  backgroundOrbOne: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: `${COLORS.purple}10`,
+    top: -100,
+    right: -90,
+  },
+
+  backgroundOrbTwo: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: `${COLORS.blue}0D`,
+    bottom: 50,
+    left: -80,
+  },
+
   scrollView: {
     flex: 1,
   },
+
   scrollContent: {
     width: '100%',
     maxWidth: 760,
     alignSelf: 'center',
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 24,
-    gap: 14,
+    paddingTop: 14,
+    paddingBottom: 28,
+    gap: 16,
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -410,56 +458,103 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     gap: 16,
   },
+
+  headerText: {
+    flex: 1,
+  },
+
   title: {
     color: COLORS.textPrimary,
-    fontSize: 22,
+    fontSize: 26,
     fontFamily: 'Poppins_700Bold',
+    letterSpacing: -0.4,
   },
+
   subtitle: {
     color: COLORS.textSecondary,
     fontSize: 13,
     fontFamily: 'Poppins_400Regular',
-    marginTop: 2,
+    marginTop: 3,
   },
+
   clearButton: {
-    minHeight: 36,
+    minHeight: 38,
     paddingHorizontal: 12,
+
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+
+    borderRadius: 13,
+
     borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
+    borderColor: COLORS.glassBorder,
+
+    backgroundColor: COLORS.glassStrong,
+
+    gap: 6,
+
+    shadowColor: COLORS.shadow,
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    elevation: 2,
   },
+
   clearButtonText: {
     color: COLORS.purple,
     fontSize: 12,
     fontFamily: 'Poppins_600SemiBold',
   },
+
   pressed: {
     opacity: 0.75,
   },
+
   errorCard: {
-    padding: 14,
-    borderRadius: 16,
+    padding: 16,
+
+    borderRadius: 18,
+
     borderWidth: 1,
-    borderColor: `${COLORS.pink}66`,
-    backgroundColor: `${COLORS.pink}12`,
+    borderColor: `${COLORS.pink}44`,
+
+    backgroundColor: COLORS.pinkSoft,
+
     gap: 12,
   },
+
   errorContent: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
   },
+
+  errorIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    backgroundColor: '#FFFFFF',
+  },
+
   errorTextContainer: {
     flex: 1,
   },
+
   errorTitle: {
     color: COLORS.textPrimary,
     fontSize: 13,
     fontFamily: 'Poppins_600SemiBold',
   },
+
   errorMessage: {
     color: COLORS.textSecondary,
     fontSize: 11,
@@ -467,49 +562,86 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
     marginTop: 2,
   },
+
   retryButton: {
     alignSelf: 'flex-start',
-    minHeight: 34,
-    paddingHorizontal: 12,
+
+    minHeight: 36,
+
+    paddingHorizontal: 14,
+
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+
+    borderRadius: 11,
+
     backgroundColor: COLORS.pink,
   },
+
   retryButtonText: {
-    color: COLORS.textPrimary,
+    color: COLORS.textOnAccent,
     fontSize: 12,
     fontFamily: 'Poppins_600SemiBold',
   },
+
   filterCard: {
-    padding: 16,
-    borderRadius: 18,
+    padding: 18,
+
+    borderRadius: 20,
+
     borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
-    gap: 14,
+    borderColor: COLORS.glassBorder,
+
+    backgroundColor: COLORS.glassStrong,
+
+    gap: 16,
+
+    shadowColor: COLORS.shadow,
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+
+    elevation: 3,
+
+    ...(Platform.OS === 'web'
+      ? {
+          backdropFilter: 'blur(16px)',
+        }
+      : {}),
   },
+
   filterHeading: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
+
   filterIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+
+    borderRadius: 13,
+
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: `${COLORS.purple}20`,
+
+    backgroundColor:
+      COLORS.purpleVerySoft,
   },
+
   filterHeadingText: {
     flex: 1,
   },
+
   filterTitle: {
     color: COLORS.textPrimary,
     fontSize: 15,
     fontFamily: 'Poppins_600SemiBold',
   },
+
   filterSubtitle: {
     color: COLORS.textSecondary,
     fontSize: 11,
@@ -517,58 +649,107 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
     marginTop: 1,
   },
+
   chipContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
   },
+
   actionBar: {
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    backgroundColor: COLORS.background,
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
+
+    backgroundColor:
+      COLORS.glassStrong,
+
+    borderTopWidth: 1,
+    borderTopColor:
+      COLORS.glassBorder,
+
+    shadowColor: COLORS.shadowStrong,
+    shadowOpacity: 1,
+    shadowRadius: 18,
+    shadowOffset: {
+      width: 0,
+      height: -5,
+    },
+
+    elevation: 8,
+
+    ...(Platform.OS === 'web'
+      ? {
+          backdropFilter: 'blur(18px)',
+        }
+      : {}),
   },
+
   actionBarContent: {
     width: '100%',
     maxWidth: 720,
+
     alignSelf: 'center',
+
     flexDirection: 'row',
     alignItems: 'center',
+
     gap: 14,
   },
+
   resultSummary: {
-    minWidth: 72,
+    minWidth: 76,
   },
+
   resultCount: {
     color: COLORS.textPrimary,
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Poppins_700Bold',
   },
+
   resultLabel: {
     color: COLORS.textSecondary,
     fontSize: 10,
     fontFamily: 'Poppins_400Regular',
   },
+
   showButton: {
     flex: 1,
-    minHeight: 50,
+    minHeight: 52,
+
     flexDirection: 'row',
+
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 15,
+
+    borderRadius: 16,
+
     backgroundColor: COLORS.purple,
+
     gap: 8,
+
+    shadowColor: COLORS.shadowStrong,
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+
+    elevation: 4,
   },
+
   showButtonDisabled: {
     opacity: 0.45,
   },
+
   showButtonPressed: {
-    opacity: 0.8,
+    opacity: 0.82,
     transform: [{ scale: 0.99 }],
   },
+
   showButtonText: {
-    color: COLORS.textPrimary,
+    color: COLORS.textOnAccent,
     fontSize: 14,
     fontFamily: 'Poppins_600SemiBold',
   },
