@@ -24,12 +24,19 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
     },
     "plugins": [
       "expo-font",
       "@maplibre/maplibre-react-native",
       "expo-sqlite"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a323007d-f021-4a9b-a435-1dea9a64c1da"
+      }
+    }
   }
 }
