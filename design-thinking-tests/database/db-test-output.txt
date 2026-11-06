@@ -1,0 +1,49 @@
+== Database rules (constraints) ==
+PASS  Guest can post a review (user_id null)
+      -> inserted
+PASS  Rating 6 is rejected by the database
+      -> ERROR:  new row for relation "spot_reviews" violates check constraint "spot_reviews_rating_check"
+PASS  Rating 0 is rejected by the database
+      -> ERROR:  new row for relation "spot_reviews" violates check constraint "spot_reviews_rating_check"
+PASS  Blank name is rejected
+      -> ERROR:  new row for relation "spot_reviews" violates check constraint "spot_reviews_author_name_check"
+PASS  41-character name is rejected
+      -> ERROR:  new row for relation "spot_reviews" violates check constraint "spot_reviews_author_name_check"
+PASS  501-character comment is rejected
+      -> ERROR:  new row for relation "spot_reviews" violates check constraint "spot_reviews_comment_check"
+
+== Row-level security (who may do what) ==
+PASS  Guest cannot post as a signed-in user (spoofed user_id)
+      -> ERROR:  new row violates row-level security policy for table "spot_reviews"
+PASS  Signed-in user cannot post under someone else's id
+      -> ERROR:  new row violates row-level security policy for table "spot_reviews"
+PASS  Signed-in user posts under own id
+      -> inserted
+PASS  Second review by the same user on the same spot is blocked
+      -> ERROR:  duplicate key value violates unique constraint "spot_reviews_spot_id_user_id_key"
+PASS  Different user can review the same spot
+      -> inserted
+PASS  Guests are not limited to one review (second guest review allowed)
+      -> inserted
+PASS  Anyone can read reviews
+      -> 4
+PASS  Guest cannot update any review (no permission)
+      -> ERROR:  permission denied for table spot_reviews
+PASS  Guest cannot delete any review (no permission)
+      -> ERROR:  permission denied for table spot_reviews
+PASS  Ben's update of Ana's review changes 0 rows
+      -> rows=0
+PASS  Ben's delete of Ana's review changes 0 rows
+      -> rows=0
+PASS  Ana can edit her own review
+      -> rows=1
+PASS  Ana cannot hand her review to Ben (with check on update)
+      -> ERROR:  new row violates row-level security policy for table "spot_reviews"
+PASS  Ana can delete her own review
+      -> rows=1
+
+== Realtime publication ==
+PASS  spot_reviews is in the supabase_realtime publication
+      -> spot_reviews
+
+21/21 database tests passed
